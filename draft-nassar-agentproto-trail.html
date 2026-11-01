@@ -2001,66 +2001,96 @@ a Merkle tree (<a href="#trails" class="auto internal xref">Section 8</a>).<a hr
 <dt id="section-1.6-2.23">Checkpoint:</dt>
           <dd style="margin-left: 1.5em" id="section-1.6-2.24">
             <p id="section-1.6-2.24.1">An Action Record that signs the size and root of its own trail at the
-end of an epoch.<a href="#section-1.6-2.24.1" class="pilcrow">¶</a></p>
+end of an epoch, covering every record before it.<a href="#section-1.6-2.24.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-1.6-2.25">Acknowledgment:</dt>
+<dt id="section-1.6-2.25">Epoch:</dt>
           <dd style="margin-left: 1.5em" id="section-1.6-2.26">
-            <p id="section-1.6-2.26.1">The responder's Action Record that cites a request's record. It is
-not a COSE Receipt <span>[<a href="#RFC9942" class="cite xref">RFC9942</a>]</span>.<a href="#section-1.6-2.26.1" class="pilcrow">¶</a></p>
+            <p id="section-1.6-2.26.1">The span of a trail that ends with a checkpoint. Over MOQT, an epoch
+is one Group of the records track.<a href="#section-1.6-2.26.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-1.6-2.27">Directed record:</dt>
+<dt id="section-1.6-2.27">Archive:</dt>
           <dd style="margin-left: 1.5em" id="section-1.6-2.28">
-            <p id="section-1.6-2.28.1">A record published by one party for one other party, which can be
-encrypted to it: gate requests, approvals, admission tokens, and
-disclosures (<a href="#tracks" class="auto internal xref">Section 5.3</a>).<a href="#section-1.6-2.28.1" class="pilcrow">¶</a></p>
+            <p id="section-1.6-2.28.1">A service that stores trails and serves them to authorized readers
+(<a href="#archives" class="auto internal xref">Section 8.4</a>).<a href="#section-1.6-2.28.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-1.6-2.29">State:</dt>
+<dt id="section-1.6-2.29">Evidence plane:</dt>
           <dd style="margin-left: 1.5em" id="section-1.6-2.30">
-            <p id="section-1.6-2.30.1">A party's current signed snapshot, republished on a schedule
-(<a href="#snapshots" class="auto internal xref">Section 9.1</a>).<a href="#section-1.6-2.30.1" class="pilcrow">¶</a></p>
+            <p id="section-1.6-2.30.1">The tracks, or HTTP resources, that carry trails, state, and directed
+records between parties.<a href="#section-1.6-2.30.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-1.6-2.31">Directive:</dt>
+<dt id="section-1.6-2.31">Acknowledgment:</dt>
           <dd style="margin-left: 1.5em" id="section-1.6-2.32">
-            <p id="section-1.6-2.32.1">A rule in an authority's state snapshot: a policy reference, a hold,
-or a requirement (<a href="#snapshots" class="auto internal xref">Section 9.1</a>).<a href="#section-1.6-2.32.1" class="pilcrow">¶</a></p>
+            <p id="section-1.6-2.32.1">The responder's Action Record that cites a request's record. It is
+not a COSE Receipt <span>[<a href="#RFC9942" class="cite xref">RFC9942</a>]</span>.<a href="#section-1.6-2.32.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-1.6-2.33">Grant:</dt>
+<dt id="section-1.6-2.33">Directed record:</dt>
           <dd style="margin-left: 1.5em" id="section-1.6-2.34">
-            <p id="section-1.6-2.34.1">A right an operator gives an authority: which directive types it may
-issue, for what scope, and which data classes it may read.<a href="#section-1.6-2.34.1" class="pilcrow">¶</a></p>
+            <p id="section-1.6-2.34.1">A record published by one party for one other party, which can be
+encrypted to it: gate requests, approvals, admission tokens,
+disclosures, requests for disclosure, and cosignatures (<a href="#tracks" class="auto internal xref">Section 5.3</a>).<a href="#section-1.6-2.34.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-1.6-2.35">Hold:</dt>
+<dt id="section-1.6-2.35">State:</dt>
           <dd style="margin-left: 1.5em" id="section-1.6-2.36">
-            <p id="section-1.6-2.36.1">A directive that tells edges to stop actions that match a selector.<a href="#section-1.6-2.36.1" class="pilcrow">¶</a></p>
+            <p id="section-1.6-2.36.1">A party's current signed snapshot, republished on a schedule
+(<a href="#snapshots" class="auto internal xref">Section 9.1</a>).<a href="#section-1.6-2.36.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-1.6-2.37">Gate:</dt>
+<dt id="section-1.6-2.37">Directive:</dt>
           <dd style="margin-left: 1.5em" id="section-1.6-2.38">
-            <p id="section-1.6-2.38.1">An action that waits for a signed approval of its request.<a href="#section-1.6-2.38.1" class="pilcrow">¶</a></p>
+            <p id="section-1.6-2.38.1">A rule in an authority's state snapshot: a policy reference, a hold,
+or a requirement (<a href="#snapshots" class="auto internal xref">Section 9.1</a>).<a href="#section-1.6-2.38.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-1.6-2.39">Admission issuer, admission token:</dt>
+<dt id="section-1.6-2.39">Grant:</dt>
           <dd style="margin-left: 1.5em" id="section-1.6-2.40">
-            <p id="section-1.6-2.40.1">A party that hands out a fixed number of tokens, and the token an
-agent's records cite (<a href="#admission" class="auto internal xref">Section 10.2</a>).<a href="#section-1.6-2.40.1" class="pilcrow">¶</a></p>
+            <p id="section-1.6-2.40.1">A right an operator gives an authority: which directive types it may
+issue, for what scope, and which data classes it may read.<a href="#section-1.6-2.40.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-1.6-2.41">Attestation level:</dt>
+<dt id="section-1.6-2.41">Action class:</dt>
           <dd style="margin-left: 1.5em" id="section-1.6-2.42">
-            <p id="section-1.6-2.42.1"><code>software</code>, <code>tee</code>, or <code>isolated</code>: who can read the edge's key, and
-what can go around the edge (<a href="#levels" class="auto internal xref">Section 2.1</a>).<a href="#section-1.6-2.42.1" class="pilcrow">¶</a></p>
+            <p id="section-1.6-2.42.1">A deployment-defined number that groups actions by impact, such as
+payments. Selectors and freshness budgets select actions by class.<a href="#section-1.6-2.42.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-1.6-2.43">Swarm:</dt>
+<dt id="section-1.6-2.43">Data class:</dt>
           <dd style="margin-left: 1.5em" id="section-1.6-2.44">
-            <p id="section-1.6-2.44.1">A set of cells and parties that share one TRAIL deployment and one
-top-level namespace.<a href="#section-1.6-2.44.1" class="pilcrow">¶</a></p>
+            <p id="section-1.6-2.44.1">A deployment-defined number that labels a redacted claim, such as an
+amount. Grants list the data classes an authority may read.<a href="#section-1.6-2.44.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-1.6-2.45">Hold:</dt>
+          <dd style="margin-left: 1.5em" id="section-1.6-2.46">
+            <p id="section-1.6-2.46.1">A directive that tells edges to stop actions that match a selector.<a href="#section-1.6-2.46.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-1.6-2.47">Gate:</dt>
+          <dd style="margin-left: 1.5em" id="section-1.6-2.48">
+            <p id="section-1.6-2.48.1">An action that waits for a signed approval of its request.<a href="#section-1.6-2.48.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-1.6-2.49">Admission issuer, admission token:</dt>
+          <dd style="margin-left: 1.5em" id="section-1.6-2.50">
+            <p id="section-1.6-2.50.1">A party that hands out a fixed number of tokens, and the token an
+agent's records cite (<a href="#admission" class="auto internal xref">Section 10.2</a>).<a href="#section-1.6-2.50.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-1.6-2.51">Attestation level:</dt>
+          <dd style="margin-left: 1.5em" id="section-1.6-2.52">
+            <p id="section-1.6-2.52.1"><code>software</code>, <code>tee</code>, or <code>isolated</code>: who can read the edge's key, and
+what can go around the edge (<a href="#levels" class="auto internal xref">Section 2.1</a>).<a href="#section-1.6-2.52.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-1.6-2.53">Swarm:</dt>
+          <dd style="margin-left: 1.5em" id="section-1.6-2.54">
+            <p id="section-1.6-2.54.1">A set of cells and parties that share one TRAIL deployment and one
+top-level namespace.<a href="#section-1.6-2.54.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
@@ -2162,7 +2192,7 @@ Result <span>[<a href="#RFC9334" class="cite xref">RFC9334</a>]</span> about the
               <td class="text-left" rowspan="1" colspan="1">
                 <code>tee</code>
 </td>
-              <td class="text-left" rowspan="1" colspan="1">Inside a confidential VM or with its key in a TPM</td>
+              <td class="text-left" rowspan="1" colspan="1">Inside a confidential VM, with its key sealed to that VM</td>
               <td class="text-left" rowspan="1" colspan="1">The confidential VM</td>
               <td class="text-left" rowspan="1" colspan="1">Not the host</td>
               <td class="text-left" rowspan="1" colspan="1">An escape into the VM</td>
@@ -2179,14 +2209,17 @@ Result <span>[<a href="#RFC9334" class="cite xref">RFC9334</a>]</span> about the
           </tbody>
         </table>
 </div>
-<p id="section-2.1-3">The edge is well placed to produce these records. It is on the path, so
+<p id="section-2.1-3">A key held in a TPM on an ordinary host cannot be exported, but the
+host can still use it to sign. An edge with such a key is at the
+<code>software</code> level.<a href="#section-2.1-3" class="pilcrow">¶</a></p>
+<p id="section-2.1-4">The edge is well placed to produce these records. It is on the path, so
 the trail is complete; it holds keys outside the agent, so a
 compromised agent cannot forge its own records; it appends each record
 before the call leaves; and a verifier can attest what holds its key.
 At the software level a record still shows integrity and binds the
 operator to what it signed, but a compromised host can sign anything.
 Authorities can require a higher level for higher-impact actions with
-a require-level directive.<a href="#section-2.1-3" class="pilcrow">¶</a></p>
+a require-level directive.<a href="#section-2.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="roles">
@@ -2406,7 +2439,8 @@ kind = &amp;(
   gate-request: 7, approval: 8,
   hold-applied: 9, disclosure: 10,
   checkpoint: 11, media-seal: 12,
-  lifecycle: 13, admission-release: 14, restart: 15
+  lifecycle: 13, admission-release: 14, restart: 15,
+  cosignature: 16
 )
 
 trail-ref = [ trail-id: bstr .size 16, leaf: uint ]
@@ -2440,9 +2474,11 @@ context-hashes = {
 
 state-ref = [ authority: tstr, sequence: uint ]
 
-cite = [ cite-type, ref: (trail-ref / call-ref), hash: bstr ]
+cite = [ cite-type, ref: (trail-ref / call-ref / media-ref),
+         hash: bstr ]
 cite-type = &amp;( input: 1, peer-record: 2, media-group: 3,
-               state: 4, directive: 5, approval: 6 )
+               directive: 4, approval: 5 )
+media-ref = [ ftn-hash: bstr, group: uint, objects: uint ]
 </pre>
 </div>
 <figcaption><a href="#figure-2" class="selfRef">Figure 2</a>:
@@ -2454,10 +2490,16 @@ cite-type = &amp;( input: 1, peer-record: 2, media-group: 3,
 hash: wth for the WIT, tth for a Transaction Token, and oth for other
 context tokens such as an access token. An Action Record is, in effect,
 a Workload Proof Token for one call that is also kept as evidence.<a href="#section-3.2-3" class="pilcrow">¶</a></p>
-<p id="section-3.2-4">The record identifier is the SHA-256 hash of the COSE_Sign1 with an
-empty unprotected header. Inclusion proofs and other material MAY be
-added to the unprotected header, as in SCITT, without changing the
-identifier.<a href="#section-3.2-4" class="pilcrow">¶</a></p>
+<p id="section-3.2-4">A cite's hash is the record identifier of the cited record, except in
+a media-group cite, where it is the media root (<a href="#media" class="auto internal xref">Section 10.4</a>). A directive
+cite names the policy bundle record in the authority's trail. The
+authority snapshots that the edge held are listed in member 14, not in
+cites.<a href="#section-3.2-4" class="pilcrow">¶</a></p>
+<p id="section-3.2-5">Records and state snapshots MUST use deterministic encoding
+(<span><a href="https://rfc-editor.org/rfc/rfc8949#section-4.2.1" class="relref">Section 4.2.1</a> of [<a href="#RFC8949" class="cite xref">RFC8949</a>]</span>). The record identifier is the SHA-256
+hash of the COSE_Sign1 encoded with an empty unprotected header map.
+Inclusion proofs and other material MAY be added to the unprotected
+header, as in SCITT, without changing the identifier.<a href="#section-3.2-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="binding">
@@ -3331,7 +3373,9 @@ trail-id and records track, for example one per tenant.<a href="#section-8.1-1" 
 <p id="section-8.1-2">An edge that loses its trail state MUST start a new trail with a new
 trail-id, MUST record a restart record in the new trail that names the
 old trail-id and last known checkpoint, and MUST NOT reuse an old
-trail-id.<a href="#section-8.1-2" class="pilcrow">¶</a></p>
+trail-id. A party changes its pseudonym the same way: it starts a new
+trail under the new pseudonym, with a restart record that names the
+old trail-id, so that witnesses keep the history connected.<a href="#section-8.1-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="checkpoints">
@@ -3359,16 +3403,19 @@ tree-head = [
 <a href="#name-checkpoint-body" class="selfRef">Checkpoint body</a>
           </figcaption></figure>
 </div>
-<p id="section-8.2-3">A checkpoint is a record made by the trail producer about its own
+<p id="section-8.2-3">tree-size and root-hash cover every record before the checkpoint. The
+checkpoint itself is the leaf at index tree-size, and the next
+checkpoint covers it.<a href="#section-8.2-3" class="pilcrow">¶</a></p>
+<p id="section-8.2-4">A checkpoint is a record made by the trail producer about its own
 trail. It is not a COSE Receipt: TRAIL trails are not Transparency
 Services, and a party proves inclusion of a record with an <span>[<a href="#RFC9162" class="cite xref">RFC9162</a>]</span>
 inclusion proof against a cosigned checkpoint. A witness that also
 operates a SCITT Transparency Service MAY additionally register records
 and issue COSE Receipts <span>[<a href="#RFC9942" class="cite xref">RFC9942</a>]</span> for them; TRAIL does not depend on
-that.<a href="#section-8.2-3" class="pilcrow">¶</a></p>
-<p id="section-8.2-4">The epoch length is set by policy. A witness MAY ask for an early
+that.<a href="#section-8.2-4" class="pilcrow">¶</a></p>
+<p id="section-8.2-5">The epoch length is set by policy. A witness MAY ask for an early
 checkpoint with REQUEST_UPDATE and NEW_GROUP_REQUEST, when the track
-sets DYNAMIC_GROUPS.<a href="#section-8.2-4" class="pilcrow">¶</a></p>
+sets DYNAMIC_GROUPS.<a href="#section-8.2-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="witnesses">
@@ -3387,12 +3434,14 @@ and fetches any it lacks;<a href="#section-8.3-2.1.1" class="pilcrow">¶</a></p>
 cosigned for that trail;<a href="#section-8.3-2.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.3-2.3">
-            <p id="section-8.3-2.3.1">countersigns the checkpoint with a COSE countersignature <span>[<a href="#RFC9338" class="cite xref">RFC9338</a>]</span>;
-and<a href="#section-8.3-2.3.1" class="pilcrow">¶</a></p>
+            <p id="section-8.3-2.3.1">countersigns the checkpoint with a COSE countersignature <span>[<a href="#RFC9338" class="cite xref">RFC9338</a>]</span>
+whose protected header carries CWT Claims with iat, the time of
+cosigning; and<a href="#section-8.3-2.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.3-2.4">
-            <p id="section-8.3-2.4.1">publishes the countersignature in its own trail and as a directed
-record for the party.<a href="#section-8.3-2.4.1" class="pilcrow">¶</a></p>
+            <p id="section-8.3-2.4.1">appends a record of kind cosignature to its own trail, whose body is
+the countersignature with the trail-id and tree size it covers, and
+sends the countersignature to the party as a directed record.<a href="#section-8.3-2.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-8.3-3">A witness MUST NOT countersign two different roots for the same trail
@@ -3469,7 +3518,9 @@ bound how far a false record can go unnoticed.<a href="#section-8.5-3" class="pi
         </h3>
 <p id="section-9.1-1">A party's state carries its current self-description, its directives
 (authorities), and its grants (operators). Each snapshot is a
-COSE_Sign1 signed by the party's key, whose payload is:<a href="#section-9.1-1" class="pilcrow">¶</a></p>
+COSE_Sign1 signed by the party's key. Its protected header is the same
+as an Action Record's, with typ <code>application/trail-state+cbor</code>. Its
+payload is:<a href="#section-9.1-1" class="pilcrow">¶</a></p>
 <span id="name-state-snapshot"></span><div id="fig-state">
 <figure id="figure-7">
           <div class="breakable lang-cddl sourcecode" id="section-9.1-2.1">
@@ -3500,14 +3551,16 @@ directive = {
 
 directive-type = &amp;(
   policy: 1,            ; value: hash and location of a policy bundle
-  hold: 2,              ; stop matching actions
-  require-level: 3,     ; minimum attestation level
+  hold: 2,              ; stop matching actions; no value
+  require-level: 3,     ; value: level, the minimum
   require-witness: 4,   ; value: require-witness, below
-  require-gate: 5,      ; matching actions need approval
-  require-admission: 6, ; matching agents need an admission token
+  require-gate: 5,      ; value: [+ tstr], the approvers
+  require-admission: 6, ; value: tstr, the admission issuer
   freshness-budget: 7,  ; value: freshness-budget, below
-  require-record: 8     ; matching calls must carry a valid record
+  require-record: 8     ; matching calls carry a record; no value
 )
+
+level = &amp;( software: 0, tee: 1, isolated: 2 )
 
 selector = {
   ? 1 =&gt; [+ bstr],              ; party pseudonyms
@@ -3530,24 +3583,28 @@ grant = {
 <a href="#name-state-snapshot" class="selfRef">State snapshot</a>
           </figcaption></figure>
 </div>
-<p id="section-9.1-3">Policy bundles, which can be large, are referenced from directives by
+<p id="section-9.1-3">A selector matches an action when every member present in it matches.
+A member matches when any of its values matches. An absent member
+matches everything.<a href="#section-9.1-3" class="pilcrow">¶</a></p>
+<p id="section-9.1-4">Policy bundles, which can be large, are referenced from directives by
 hash. The bundle itself is a record in the authority's trail, and edges
-fetch it once. The policy claim of every Action Record is the hash of
-the set of directives the edge applied, so "it was allowed" can be
-checked later.<a href="#section-9.1-3" class="pilcrow">¶</a></p>
-<p id="section-9.1-4">An authority's directives apply only within the grant its operator
+fetch it once. The policy claim of every Action Record is the SHA-256
+hash of the deterministically encoded array of [authority, directive
+id] pairs for the directives the edge applied, sorted by their
+encoding, so "it was allowed" can be checked later.<a href="#section-9.1-4" class="pilcrow">¶</a></p>
+<p id="section-9.1-5">An authority's directives apply only within the grant its operator
 gives it. An edge MUST ignore any directive that falls outside the
 issuing authority's grant in the operator's current state snapshot. One
 authority therefore cannot stop a whole swarm unless the operator agreed
 to that, and the operator's grants are visible to every party that can
-read its state.<a href="#section-9.1-4" class="pilcrow">¶</a></p>
-<p id="section-9.1-5">Holds that apply to a single credential, such as one agent's WIT or one
+read its state.<a href="#section-9.1-5" class="pilcrow">¶</a></p>
+<p id="section-9.1-6">Holds that apply to a single credential, such as one agent's WIT or one
 admission token, SHOULD be expressed as a suspended entry in the
 issuer's Token Status List <span>[<a href="#OAUTH-STATUS-LIST" class="cite xref">OAUTH-STATUS-LIST</a>]</span>, carried in the
 issuer's state. Revocation is an invalid entry. This uses the same
-mechanism that OAuth and WIMSE deployments use for credential status.<a href="#section-9.1-5" class="pilcrow">¶</a></p>
-<p id="section-9.1-6">An edge MUST record a hold-applied record the first time it stops an
-action because of a hold.<a href="#section-9.1-6" class="pilcrow">¶</a></p>
+mechanism that OAuth and WIMSE deployments use for credential status.<a href="#section-9.1-6" class="pilcrow">¶</a></p>
+<p id="section-9.1-7">An edge MUST record a hold-applied record the first time it stops an
+action because of a hold.<a href="#section-9.1-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="directive-effects">
@@ -3624,7 +3681,8 @@ except as allowed by degraded mode (<a href="#degraded" class="auto internal xre
           <dd style="margin-left: 1.5em" id="section-9.3-1.4">
             <p id="section-9.3-1.4.1">For every require-witness directive that applies, a cell's latest
 checkpoint MUST carry countersignatures from at least k of the named
-witnesses, each no older than the directive's max-age. If it does
+witnesses, each with an iat no older than the directive's max-age.
+If it does
 not, the edge MUST NOT perform covered actions except as allowed by
 degraded mode, and receivers MUST reject calls from that cell that
 the directive covers.<a href="#section-9.3-1.4.1" class="pilcrow">¶</a></p>
@@ -3644,9 +3702,6 @@ agent calling service Z must be monitored by regulator R" is a
 require-witness directive from R, with Z as the counterparty in its
 selector. If R stops watching, its cosignatures stop, the callers'
 checkpoints age out, and Z's edge rejects their calls.<a href="#section-9.3-3" class="pilcrow">¶</a></p>
-<p id="section-9.3-4">Pausing MUST also be triggered when a subscription to a required state
-track ends with PUBLISH_DONE, a stream reset, or REQUEST_ERROR and
-cannot be restored within the budget.<a href="#section-9.3-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="budgets">
@@ -3739,15 +3794,15 @@ action and:<a href="#section-10.1-1" class="pilcrow">¶</a></p>
 the pending call and any redacted context the approver needs; and<a href="#section-10.1-2.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-10.1-2.2">
-            <p id="section-10.1-2.2.1">sends the same record to the approver as a directed record, with
-disclosures for the approver's classes.<a href="#section-10.1-2.2.1" class="pilcrow">¶</a></p>
+            <p id="section-10.1-2.2.1">sends the same record to each approver named in the directive, as a
+directed record, with disclosures for that approver's classes.<a href="#section-10.1-2.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-10.1-3">The approver publishes an approval record as a directed record for the
-cell, and appends it to its own trail. The approval cites the request
-by record identifier and states the decision. The edge continues only
-after a valid approval, and its send record cites it. When several
-approvals are required, the edge waits for each of them.<a href="#section-10.1-3" class="pilcrow">¶</a></p>
+cell, and appends it to its own trail. The approval cites the
+gate-request record with a cite of type peer-record and states the
+decision. The edge continues only after a valid approval from every
+named approver, and its send record cites each approval.<a href="#section-10.1-3" class="pilcrow">¶</a></p>
 <p id="section-10.1-4">A require-gate selector can cover every action an agent takes. Every
 such action then waits for a round trip to the approver, and stops if
 the approver cannot be reached, because gated actions never degrade.<a href="#section-10.1-4" class="pilcrow">¶</a></p>
@@ -3820,8 +3875,9 @@ forwards to the agent, it computes a Merkle root over the (Object ID,
 payload hash) pairs of the Group, and appends a media-seal record that
 names the track, the Group, the Object count, and the root.<a href="#section-10.4-1" class="pilcrow">¶</a></p>
 <p id="section-10.4-2">An Action Record that depended on media cites it with a media-group
-cite (track, Group, root). Changing one frame breaks the link.
-Inclusion proofs let a verifier check single frames.<a href="#section-10.4-2" class="pilcrow">¶</a></p>
+cite that names the track, the Group, and the Object count, with the
+root as its hash. Changing one frame breaks the link. Inclusion proofs
+let a verifier check single frames.<a href="#section-10.4-2" class="pilcrow">¶</a></p>
 <p id="section-10.4-3">Live media MAY use Datagram Delivery Mode and delivery timeouts.
 Evidence checks MUST use complete Groups fetched from an archive.<a href="#section-10.4-3" class="pilcrow">¶</a></p>
 <p id="section-10.4-4">For approval before playback, each media Group uses its own Secure
@@ -4220,8 +4276,8 @@ require-record the receiver then refuses the call.<a href="#section-14.2-1.6.1" 
           <dd class="break"></dd>
 <dt id="section-14.2-1.7">Authority:</dt>
           <dd style="margin-left: 1.5em" id="section-14.2-1.8">
-            <p id="section-14.2-1.8.1">Can read its granted classes, issue directives within its grant, and
-cosign. Cannot read other classes, because disclosures are encrypted
+            <p id="section-14.2-1.8.1">Can read its granted classes and issue directives within its grant.
+Cannot read other classes, because disclosures are encrypted
 to each recipient. Cannot act outside its grant.<a href="#section-14.2-1.8.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
@@ -4325,11 +4381,12 @@ person using those agents did. TRAIL follows <span>[<a href="#RFC6973" class="ci
 this:<a href="#section-15-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-15-2.1">
-          <p id="section-15-2.1.1">TRAIL namespaces and resource paths contain only rotating
-pseudonyms. WIMSE identifiers, dialog identifiers, and principals
-appear in TRAIL only inside signed payloads, and sensitive claims are
-redacted. Dialog identifiers that a binding such as PACE puts in its
-own track names are covered by that binding's privacy rules.<a href="#section-15-2.1.1" class="pilcrow">¶</a></p>
+          <p id="section-15-2.1.1">TRAIL namespaces and resource paths contain only pseudonyms, which
+a party rotates by starting a new trail (<a href="#trails" class="auto internal xref">Section 8</a>). WIMSE
+identifiers, dialog identifiers, and principals appear in TRAIL only
+inside signed payloads, and sensitive claims are redacted. Dialog
+identifiers that a binding such as PACE puts in its own track names
+are covered by that binding's privacy rules.<a href="#section-15-2.1.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-15-2.2">
           <p id="section-15-2.2.1">Trails and state are readable only by authorized parties
@@ -4413,7 +4470,60 @@ use a value from the application-specific range 0x3800 to 0x3FFF.<a href="#secti
 <a href="#section-16.3" class="section-number selfRef">16.3. </a><a href="#name-media-types" class="section-name selfRef">Media Types</a>
         </h3>
 <p id="section-16.3-1">IANA is requested to register <code>application/trail-record+cbor</code> and
-<code>application/trail-state+cbor</code>.<a href="#section-16.3-1" class="pilcrow">¶</a></p>
+<code>application/trail-state+cbor</code> in the "Media Types" registry, with
+the following template for each:<a href="#section-16.3-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-16.3-2">
+          <dt id="section-16.3-2.1">Type name:</dt>
+          <dd style="margin-left: 1.5em" id="section-16.3-2.2">
+            <p id="section-16.3-2.2.1">application<a href="#section-16.3-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-16.3-2.3">Subtype names:</dt>
+          <dd style="margin-left: 1.5em" id="section-16.3-2.4">
+            <p id="section-16.3-2.4.1">trail-record+cbor; trail-state+cbor<a href="#section-16.3-2.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-16.3-2.5">Required and optional parameters:</dt>
+          <dd style="margin-left: 1.5em" id="section-16.3-2.6">
+            <p id="section-16.3-2.6.1">none<a href="#section-16.3-2.6.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-16.3-2.7">Encoding considerations:</dt>
+          <dd style="margin-left: 1.5em" id="section-16.3-2.8">
+            <p id="section-16.3-2.8.1">binary (CBOR)<a href="#section-16.3-2.8.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-16.3-2.9">Security considerations:</dt>
+          <dd style="margin-left: 1.5em" id="section-16.3-2.10">
+            <p id="section-16.3-2.10.1">see <a href="#security-considerations" class="auto internal xref">Section 14</a><a href="#section-16.3-2.10.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-16.3-2.11">Interoperability considerations:</dt>
+          <dd style="margin-left: 1.5em" id="section-16.3-2.12">
+            <p id="section-16.3-2.12.1">none<a href="#section-16.3-2.12.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-16.3-2.13">Published specification:</dt>
+          <dd style="margin-left: 1.5em" id="section-16.3-2.14">
+            <p id="section-16.3-2.14.1">this document<a href="#section-16.3-2.14.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-16.3-2.15">Applications that use this media type:</dt>
+          <dd style="margin-left: 1.5em" id="section-16.3-2.16">
+            <p id="section-16.3-2.16.1">TRAIL edges, authorities, witnesses, and verifiers<a href="#section-16.3-2.16.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-16.3-2.17">Fragment identifier considerations:</dt>
+          <dd style="margin-left: 1.5em" id="section-16.3-2.18">
+            <p id="section-16.3-2.18.1">as for application/cbor<a href="#section-16.3-2.18.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-16.3-2.19">Change controller:</dt>
+          <dd style="margin-left: 1.5em" id="section-16.3-2.20">
+            <p id="section-16.3-2.20.1">IETF<a href="#section-16.3-2.20.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
 </section>
 </div>
 <div id="trail-registries">
@@ -4423,8 +4533,12 @@ use a value from the application-specific range 0x3800 to 0x3FFF.<a href="#secti
         </h3>
 <p id="section-16.4-1">IANA is requested to create the registries "TRAIL Record Kinds",
 "TRAIL Outcomes", "TRAIL Call Reference Types", "TRAIL Directive
-Types", and "TRAIL Cite Types", with the initial values in
-<a href="#fig-record" class="auto internal xref">Figure 2</a> and <a href="#fig-state" class="auto internal xref">Figure 7</a> and a Specification Required policy.<a href="#section-16.4-1" class="pilcrow">¶</a></p>
+Types", "TRAIL Cite Types", "TRAIL Record Members", "TRAIL State
+Members", "TRAIL Context Hash Members", and "TRAIL Selector Members",
+with the initial values in <a href="#fig-record" class="auto internal xref">Figure 2</a> and <a href="#fig-state" class="auto internal xref">Figure 7</a> and a
+Specification Required policy. The member registries cover the
+integer keys of the trail-record, trail-state, context-hashes, and
+selector maps, so that extensions do not collide.<a href="#section-16.4-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -4737,12 +4851,13 @@ all of them base on COSE or SCITT.<a href="#appendix-A-3" class="pilcrow">¶</a>
 <ol start="1" type="1" class="normal type-1" id="appendix-B.1-1">
 <li id="appendix-B.1-1.1">
             <p id="appendix-B.1-1.1.1">Operator O grants financial regulator F the directive types
-require-gate and hold for action class "payment", and data class
-"finance". The grant is in O's state.<a href="#appendix-B.1-1.1.1" class="pilcrow">¶</a></p>
+require-gate, require-level, and hold for action class "payment",
+and data class "finance". The grant is in O's state.<a href="#appendix-B.1-1.1.1" class="pilcrow">¶</a></p>
 </li>
           <li id="appendix-B.1-1.2">
             <p id="appendix-B.1-1.2.1">F's state contains require-gate for class "payment" above a
-threshold, and require-level of isolated for the same class.<a href="#appendix-B.1-1.2.1" class="pilcrow">¶</a></p>
+threshold, naming F as approver, and require-level of <code>isolated</code>
+for the same class.<a href="#appendix-B.1-1.2.1" class="pilcrow">¶</a></p>
 </li>
           <li id="appendix-B.1-1.3">
             <p id="appendix-B.1-1.3.1">Agent A in cell C_A, in dialog D, asks to send a payment instruction

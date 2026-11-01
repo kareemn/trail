@@ -378,7 +378,19 @@ Trail:
 
 Checkpoint:
 : An Action Record that signs the size and root of its own trail at the
-  end of an epoch.
+  end of an epoch, covering every record before it.
+
+Epoch:
+: The span of a trail that ends with a checkpoint. Over MOQT, an epoch
+  is one Group of the records track.
+
+Archive:
+: A service that stores trails and serves them to authorized readers
+  ({{archives}}).
+
+Evidence plane:
+: The tracks, or HTTP resources, that carry trails, state, and directed
+  records between parties.
 
 Acknowledgment:
 : The responder's Action Record that cites a request's record. It is
@@ -386,8 +398,8 @@ Acknowledgment:
 
 Directed record:
 : A record published by one party for one other party, which can be
-  encrypted to it: gate requests, approvals, admission tokens, and
-  disclosures ({{tracks}}).
+  encrypted to it: gate requests, approvals, admission tokens,
+  disclosures, requests for disclosure, and cosignatures ({{tracks}}).
 
 State:
 : A party's current signed snapshot, republished on a schedule
@@ -400,6 +412,14 @@ Directive:
 Grant:
 : A right an operator gives an authority: which directive types it may
   issue, for what scope, and which data classes it may read.
+
+Action class:
+: A deployment-defined number that groups actions by impact, such as
+  payments. Selectors and freshness budgets select actions by class.
+
+Data class:
+: A deployment-defined number that labels a redacted claim, such as an
+  amount. Grants list the data classes an authority may read.
 
 Hold:
 : A directive that tells edges to stop actions that match a selector.
@@ -472,9 +492,13 @@ Result {{RFC9334}} about the edge's key ({{attestation}}).
 | Level | Where the edge is | What the cell is | Who can read the key | What goes around the edge |
 |---|---|---|---|---|
 | `software` | A process beside the sandbox on the same host, such as a sidecar proxy or egress gateway | The sandbox and the edge | The host | An escape from the sandbox |
-| `tee` | Inside a confidential VM or with its key in a TPM | The confidential VM | Not the host | An escape into the VM |
+| `tee` | Inside a confidential VM, with its key sealed to that VM | The confidential VM | Not the host | An escape into the VM |
 | `isolated` | Separate hardware that all of the machine's traffic crosses, such as a DPU or SmartNIC | The whole machine | Nothing on the host | Only compromise of that hardware |
 {: #tab-levels title="Attestation levels"}
+
+A key held in a TPM on an ordinary host cannot be exported, but the
+host can still use it to sign. An edge with such a key is at the
+`software` level.
 
 The edge is well placed to produce these records. It is on the path, so
 the trail is complete; it holds keys outside the agent, so a
@@ -639,7 +663,8 @@ kind = &(
   gate-request: 7, approval: 8,
   hold-applied: 9, disclosure: 10,
   checkpoint: 11, media-seal: 12,
-  lifecycle: 13, admission-release: 14, restart: 15
+  lifecycle: 13, admission-release: 14, restart: 15,
+  cosignature: 16
 )
 
 trail-ref = [ trail-id: bstr .size 16, leaf: uint ]
@@ -673,9 +698,11 @@ context-hashes = {
 
 state-ref = [ authority: tstr, sequence: uint ]
 
-cite = [ cite-type, ref: (trail-ref / call-ref), hash: bstr ]
+cite = [ cite-type, ref: (trail-ref / call-ref / media-ref),
+         hash: bstr ]
 cite-type = &( input: 1, peer-record: 2, media-group: 3,
-               state: 4, directive: 5, approval: 6 )
+               directive: 4, approval: 5 )
+media-ref = [ ftn-hash: bstr, group: uint, objects: uint ]
 ~~~
 {: #fig-record title="Action Record payload"}
 
@@ -685,10 +712,17 @@ hash: wth for the WIT, tth for a Transaction Token, and oth for other
 context tokens such as an access token. An Action Record is, in effect,
 a Workload Proof Token for one call that is also kept as evidence.
 
-The record identifier is the SHA-256 hash of the COSE_Sign1 with an
-empty unprotected header. Inclusion proofs and other material MAY be
-added to the unprotected header, as in SCITT, without changing the
-identifier.
+A cite's hash is the record identifier of the cited record, except in
+a media-group cite, where it is the media root ({{media}}). A directive
+cite names the policy bundle record in the authority's trail. The
+authority snapshots that the edge held are listed in member 14, not in
+cites.
+
+Records and state snapshots MUST use deterministic encoding
+({{Section 4.2.1 of RFC8949}}). The record identifier is the SHA-256
+hash of the COSE_Sign1 encoded with an empty unprotected header map.
+Inclusion proofs and other material MAY be added to the unprotected
+header, as in SCITT, without changing the identifier.
 
 ## Signature Binding {#binding}
 
@@ -1232,7 +1266,9 @@ trail-id and records track, for example one per tenant.
 An edge that loses its trail state MUST start a new trail with a new
 trail-id, MUST record a restart record in the new trail that names the
 old trail-id and last known checkpoint, and MUST NOT reuse an old
-trail-id.
+trail-id. A party changes its pseudonym the same way: it starts a new
+trail under the new pseudonym, with a restart record that names the
+old trail-id, so that witnesses keep the history connected.
 
 ## Checkpoints {#checkpoints}
 
@@ -1250,6 +1286,10 @@ tree-head = [
 ]
 ~~~
 {: #fig-tree-head title="Checkpoint body"}
+
+tree-size and root-hash cover every record before the checkpoint. The
+checkpoint itself is the leaf at index tree-size, and the next
+checkpoint covers it.
 
 A checkpoint is a record made by the trail producer about its own
 trail. It is not a COSE Receipt: TRAIL trails are not Transparency
@@ -1273,11 +1313,13 @@ A witness reads a party's trail. For each checkpoint it:
 * checks that the new tree is consistent with the last tree head it
   cosigned for that trail;
 
-* countersigns the checkpoint with a COSE countersignature {{RFC9338}};
-  and
+* countersigns the checkpoint with a COSE countersignature {{RFC9338}}
+  whose protected header carries CWT Claims with iat, the time of
+  cosigning; and
 
-* publishes the countersignature in its own trail and as a directed
-  record for the party.
+* appends a record of kind cosignature to its own trail, whose body is
+  the countersignature with the trail-id and tree size it covers, and
+  sends the countersignature to the party as a directed record.
 
 A witness MUST NOT countersign two different roots for the same trail
 and tree size. Two such countersignatures are proof that the witness
@@ -1292,7 +1334,7 @@ The party copies its latest cosigned checkpoint into its state
 snapshot, so that any peer can check it with one subscription or
 fetch.
 
-## Archives
+## Archives {#archives}
 
 MOQT relays are not required to cache. Each deployment MUST name at
 least one archive for every witness. An archive reads trails and serves
@@ -1332,7 +1374,9 @@ bound how far a false record can go unnoticed.
 
 A party's state carries its current self-description, its directives
 (authorities), and its grants (operators). Each snapshot is a
-COSE_Sign1 signed by the party's key, whose payload is:
+COSE_Sign1 signed by the party's key. Its protected header is the same
+as an Action Record's, with typ `application/trail-state+cbor`. Its
+payload is:
 
 ~~~ cddl
 trail-state = {
@@ -1361,14 +1405,16 @@ directive = {
 
 directive-type = &(
   policy: 1,            ; value: hash and location of a policy bundle
-  hold: 2,              ; stop matching actions
-  require-level: 3,     ; minimum attestation level
+  hold: 2,              ; stop matching actions; no value
+  require-level: 3,     ; value: level, the minimum
   require-witness: 4,   ; value: require-witness, below
-  require-gate: 5,      ; matching actions need approval
-  require-admission: 6, ; matching agents need an admission token
+  require-gate: 5,      ; value: [+ tstr], the approvers
+  require-admission: 6, ; value: tstr, the admission issuer
   freshness-budget: 7,  ; value: freshness-budget, below
-  require-record: 8     ; matching calls must carry a valid record
+  require-record: 8     ; matching calls carry a record; no value
 )
+
+level = &( software: 0, tee: 1, isolated: 2 )
 
 selector = {
   ? 1 => [+ bstr],              ; party pseudonyms
@@ -1388,11 +1434,16 @@ grant = {
 ~~~
 {: #fig-state title="State snapshot"}
 
+A selector matches an action when every member present in it matches.
+A member matches when any of its values matches. An absent member
+matches everything.
+
 Policy bundles, which can be large, are referenced from directives by
 hash. The bundle itself is a record in the authority's trail, and edges
-fetch it once. The policy claim of every Action Record is the hash of
-the set of directives the edge applied, so "it was allowed" can be
-checked later.
+fetch it once. The policy claim of every Action Record is the SHA-256
+hash of the deterministically encoded array of [authority, directive
+id] pairs for the directives the edge applied, sorted by their
+encoding, so "it was allowed" can be checked later.
 
 An authority's directives apply only within the grant its operator
 gives it. An edge MUST ignore any directive that falls outside the
@@ -1436,7 +1487,8 @@ Downstream freshness (authority to cell):
 Upstream freshness (cell to witness):
 : For every require-witness directive that applies, a cell's latest
   checkpoint MUST carry countersignatures from at least k of the named
-  witnesses, each no older than the directive's max-age. If it does
+  witnesses, each with an iat no older than the directive's max-age.
+  If it does
   not, the edge MUST NOT perform covered actions except as allowed by
   degraded mode, and receivers MUST reject calls from that cell that
   the directive covers.
@@ -1455,10 +1507,6 @@ agent calling service Z must be monitored by regulator R" is a
 require-witness directive from R, with Z as the counterparty in its
 selector. If R stops watching, its cosignatures stop, the callers'
 checkpoints age out, and Z's edge rejects their calls.
-
-Pausing MUST also be triggered when a subscription to a required state
-track ends with PUBLISH_DONE, a stream reset, or REQUEST_ERROR and
-cannot be restored within the budget.
 
 ## Freshness Budgets per Action Class {#budgets}
 
@@ -1520,14 +1568,14 @@ action and:
 * appends a gate-request record to its trail, whose body is the hash of
   the pending call and any redacted context the approver needs; and
 
-* sends the same record to the approver as a directed record, with
-  disclosures for the approver's classes.
+* sends the same record to each approver named in the directive, as a
+  directed record, with disclosures for that approver's classes.
 
 The approver publishes an approval record as a directed record for the
-cell, and appends it to its own trail. The approval cites the request
-by record identifier and states the decision. The edge continues only
-after a valid approval, and its send record cites it. When several
-approvals are required, the edge waits for each of them.
+cell, and appends it to its own trail. The approval cites the
+gate-request record with a cite of type peer-record and states the
+decision. The edge continues only after a valid approval from every
+named approver, and its send record cites each approval.
 
 A require-gate selector can cover every action an agent takes. Every
 such action then waits for a round trip to the approver, and stops if
@@ -1585,8 +1633,9 @@ payload hash) pairs of the Group, and appends a media-seal record that
 names the track, the Group, the Object count, and the root.
 
 An Action Record that depended on media cites it with a media-group
-cite (track, Group, root). Changing one frame breaks the link.
-Inclusion proofs let a verifier check single frames.
+cite that names the track, the Group, and the Object count, with the
+root as its hash. Changing one frame breaks the link. Inclusion proofs
+let a verifier check single frames.
 
 Live media MAY use Datagram Delivery Mode and delivery timeouts.
 Evidence checks MUST use complete Groups fetched from an archive.
@@ -1796,8 +1845,8 @@ Relay or proxy:
   require-record the receiver then refuses the call.
 
 Authority:
-: Can read its granted classes, issue directives within its grant, and
-  cosign. Cannot read other classes, because disclosures are encrypted
+: Can read its granted classes and issue directives within its grant.
+  Cannot read other classes, because disclosures are encrypted
   to each recipient. Cannot act outside its grant.
 
 Hardware root:
@@ -1869,11 +1918,12 @@ A system that can prove what every agent did can also show what every
 person using those agents did. TRAIL follows {{RFC6973}} and limits
 this:
 
-* TRAIL namespaces and resource paths contain only rotating
-  pseudonyms. WIMSE identifiers, dialog identifiers, and principals
-  appear in TRAIL only inside signed payloads, and sensitive claims are
-  redacted. Dialog identifiers that a binding such as PACE puts in its
-  own track names are covered by that binding's privacy rules.
+* TRAIL namespaces and resource paths contain only pseudonyms, which
+  a party rotates by starting a new trail ({{trails}}). WIMSE
+  identifiers, dialog identifiers, and principals appear in TRAIL only
+  inside signed payloads, and sensitive claims are redacted. Dialog
+  identifiers that a binding such as PACE puts in its own track names
+  are covered by that binding's privacy rules.
 
 * Trails and state are readable only by authorized parties
   ({{read-access}}).
@@ -1917,14 +1967,49 @@ use a value from the application-specific range 0x3800 to 0x3FFF.
 ## Media Types
 
 IANA is requested to register `application/trail-record+cbor` and
-`application/trail-state+cbor`.
+`application/trail-state+cbor` in the "Media Types" registry, with
+the following template for each:
+
+Type name:
+: application
+
+Subtype names:
+: trail-record+cbor; trail-state+cbor
+
+Required and optional parameters:
+: none
+
+Encoding considerations:
+: binary (CBOR)
+
+Security considerations:
+: see {{security-considerations}}
+
+Interoperability considerations:
+: none
+
+Published specification:
+: this document
+
+Applications that use this media type:
+: TRAIL edges, authorities, witnesses, and verifiers
+
+Fragment identifier considerations:
+: as for application/cbor
+
+Change controller:
+: IETF
 
 ## TRAIL Registries
 
 IANA is requested to create the registries "TRAIL Record Kinds",
 "TRAIL Outcomes", "TRAIL Call Reference Types", "TRAIL Directive
-Types", and "TRAIL Cite Types", with the initial values in
-{{fig-record}} and {{fig-state}} and a Specification Required policy.
+Types", "TRAIL Cite Types", "TRAIL Record Members", "TRAIL State
+Members", "TRAIL Context Hash Members", and "TRAIL Selector Members",
+with the initial values in {{fig-record}} and {{fig-state}} and a
+Specification Required policy. The member registries cover the
+integer keys of the trail-record, trail-state, context-hashes, and
+selector maps, so that extensions do not collide.
 
 --- back
 
@@ -1964,11 +2049,12 @@ all of them base on COSE or SCITT.
 ## A Gated Payment Across Operators
 
 1. Operator O grants financial regulator F the directive types
-   require-gate and hold for action class "payment", and data class
-   "finance". The grant is in O's state.
+   require-gate, require-level, and hold for action class "payment",
+   and data class "finance". The grant is in O's state.
 
 2. F's state contains require-gate for class "payment" above a
-   threshold, and require-level of isolated for the same class.
+   threshold, naming F as approver, and require-level of `isolated`
+   for the same class.
 
 3. Agent A in cell C_A, in dialog D, asks to send a payment instruction
    to agent B.
