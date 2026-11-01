@@ -1385,9 +1385,9 @@ matches everything.
 Policy bundles, which can be large, are referenced from directives by
 hash. The bundle itself is a record in the authority's trail, and edges
 fetch it once. The policy claim of every Action Record is the SHA-256
-hash of the deterministically encoded array of [authority, directive
-id] pairs for the directives the edge applied, sorted by their
-encoding, so "it was allowed" can be checked later.
+hash of the deterministically encoded array of
+`[authority, directive-id]` pairs for the directives the edge applied,
+sorted by their encoding, so "it was allowed" can be checked later.
 
 An authority's directives apply only within the grant its operator
 gives it. An edge MUST ignore any directive that falls outside the
@@ -1717,9 +1717,9 @@ trails and state it needs.
 {: #tab-scopes title="Read access per role"}
 
 In C4M terms, a cell edge with pseudonym P gets a scope with actions
-PUBLISH_NAMESPACE and PUBLISH and namespace match ["trail", S, P], and a
-second scope with action SUBSCRIBE and track match on its own pseudonym
-under the to namespaces of its authorities. MOQT does not copy
+PUBLISH_NAMESPACE and PUBLISH and namespace match `["trail", S, P]`,
+and a second scope with action SUBSCRIBE and track match on its own
+pseudonym under the to namespaces of its authorities. MOQT does not copy
 authorization tokens from SUBSCRIBE_TRACKS into the PUBLISH messages it
 produces, so a relay MUST check each forwarded PUBLISH against the
 scope of the token presented with the SUBSCRIBE_TRACKS.
