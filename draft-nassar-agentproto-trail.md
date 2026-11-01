@@ -252,43 +252,20 @@ Two bindings, one evidence format:
   MOQT is preferred for the evidence plane ({{why-moqt}}).
 
 Three track kinds per party:
-: Every party (edge, authority, witness, operator) publishes a records
-  track, a state track, and directed tracks. There are no per-function
-  namespaces.
+: Every party publishes records, state, and directed records
+  ({{tracks}}).
 
 Two freshness rules:
-: An edge must hold a fresh state snapshot from each authority it
-  answers to, and its trail must hold a fresh witness cosignature.
-  These two rules provide kill-switch reachability, monitoring leases,
-  heartbeats, and checkpoint liveness.
+: Fresh authority state and fresh witness cosignatures keep an edge
+  running ({{freshness}}).
 
 ## Scope {#scope}
 
-This document specifies:
-
-* The roles and architecture ({{architecture}}), including what the
-  attestation levels mean ({{levels}}) and why MOQT is preferred
-  ({{why-moqt}}).
-
-* The Action Record, its claims, and its signature ({{record}}).
-
-* The core rule: no record, no action ({{core-rule}}).
-
-* The MOQT binding ({{moqt}}) and the HTTP binding ({{http}}).
-
-* How TRAIL attaches to PACE, to MCP over MOQT, and to agent protocols
-  over HTTP ({{protocols}}).
-
-* Trails, checkpoints, and witnesses ({{trails}}).
-
-* State snapshots, directives, and the freshness rules ({{state}}).
-
-* Gates, admission, scoped disclosure, and media evidence
-  ({{gates-etc}}).
-
-* Identity, delegation, and attestation profiles ({{identity}}).
-
-* Authorization to publish and read TRAIL tracks ({{authorization}}).
+This document specifies the Action Record, the rule that no action
+leaves a cell without one, the MOQT and HTTP bindings, how TRAIL
+attaches to agent protocols, trails and witnesses, state and
+directives, and the profiles of existing identity, delegation,
+attestation, and authorization work that TRAIL uses.
 
 This document does not specify:
 
@@ -299,12 +276,7 @@ This document does not specify:
   does not define it.
 
 * Agent behavior, decision-making, policy languages, inspector models,
-  or the detection of harmful content. TRAIL records actions and
-  enforces rules at the edge; it defines no way to judge whether an
-  action is safe. An authority that judges actions with its own tools
-  acts through TRAIL: a gate before an action ({{gates}}), which is a
-  protocol-level confirmation step, a policy at the edge as it happens,
-  and a hold afterwards ({{snapshots}}).
+  or the detection of harmful content ({{limits}}).
 
 * New MOQT messages.
 
@@ -559,40 +531,13 @@ inside them:
 
 ## Why MOQT {#why-moqt}
 
-Every TRAIL property is available over HTTP, with the losses listed in
-{{http-losses}}. MOQT is preferred for the evidence plane, and for calls
-where both sides support it, because of properties that MOQT has and
-HTTP does not:
-
-Exact binding:
-: A MOQT Object has a stable name and address (Full Track Name, Group,
-  Object) and does not change once published {{MoQ-TRANSPORT}}. An
-  Action Record can therefore bind to exactly one call. An HTTP request
-  has no such name, and a record can only cover a hash of selected
-  components.
-
-Evidence that cannot be stripped:
-: Only the Original Publisher can add Immutable Properties, relays
-  forward them unchanged, and Secure Objects {{MoQ-SECOBJ}}
-  authenticates them end to end. An HTTP intermediary can drop a header
-  field.
-
-One commit point:
-: The edge writes the record to its trail and publishes the call on the
-  same session, through the same first-hop relay, so "appended before
-  the call leaves" ({{moqt-commit}}) is a local ordering rule.
-
-Push to parties the publisher did not enumerate:
-: SUBSCRIBE_TRACKS on a namespace prefix lets authorities, witnesses,
-  and archives receive every trail in a swarm, including trails of
-  cells that appear later, without the publisher knowing who they are.
-  Over HTTP the same result needs discovery through witness trails and
-  repeated fetches ({{http-trails}}).
-
-Pushed state:
-: A subscription with FILL_PARAMETERS delivers the latest snapshot and
-  every later one, so a hold takes effect when it is published. Over
-  HTTP it takes effect at the edge's next poll.
+Every TRAIL property is available over HTTP. MOQT is preferred for the
+evidence plane, and for calls where both sides support it. A MOQT
+Object has a stable name and cannot be changed once published
+{{MoQ-TRANSPORT}}, relays cannot strip Immutable Properties, the trail
+and the call share one session, and subscriptions push trails and
+state to parties the publisher did not enumerate. {{tab-http-losses}}
+compares each of these with HTTP. MOQT also provides:
 
 History and live data under one name:
 : The same records track serves live records by SUBSCRIBE and past ones
@@ -795,8 +740,7 @@ The receiving edge MUST:
    those authorities' state MUST check that each named snapshot exists
    and is within the applicable budget.
 
-5. Reject a record identifier it has already accepted, unless the
-   action is idempotent.
+5. Reject a replayed record ({{replay}}).
 
 6. Deliver the call, and append a recv record that cites the sender's
    record.
@@ -856,7 +800,9 @@ records:
   epoch and ends with a checkpoint ({{checkpoints}}). Object IDs within
   a Group start at 0 and are consecutive. The publisher MUST NOT use
   the Prior Object ID Gap Property on a records track, so any gap is
-  evidence of loss or withholding.
+  evidence of loss or withholding. A witness MAY ask for an early
+  checkpoint with REQUEST_UPDATE and NEW_GROUP_REQUEST, when the track
+  sets DYNAMIC_GROUPS.
 
 state:
 : The party's current snapshot. Each Group holds exactly one Object, a
@@ -1129,9 +1075,9 @@ Payload:
 Credentials:
 : Identity assertions, authorization proofs, and SD-Card presentations
   travel in the PACE credentials member, as PACE specifies. The record
-  carries their hashes in context-hashes. A key-bound presentation is
-  bound to a nonce from the peer, so it travels on ACCEPT, UPDATE, or
-  JOIN_REQUEST, never on the card track.
+  carries their hashes in context-hashes. A key-bound presentation
+  travels on ACCEPT, UPDATE, or JOIN_REQUEST, the messages that answer
+  a peer's nonce.
 
 Confirmation and evidence:
 : Where PACE lets a peer require evidence of approval for a high-risk
@@ -1299,9 +1245,7 @@ operates a SCITT Transparency Service MAY additionally register records
 and issue COSE Receipts {{RFC9942}} for them; TRAIL does not depend on
 that.
 
-The epoch length is set by policy. A witness MAY ask for an early
-checkpoint with REQUEST_UPDATE and NEW_GROUP_REQUEST, when the track
-sets DYNAMIC_GROUPS.
+The epoch length is set by policy.
 
 ## Witnesses {#witnesses}
 
@@ -1723,8 +1667,8 @@ what the agent claims it can do. TRAIL uses it as follows:
   binding JWT, MAY be included in the cell's state snapshot.
 
 * Context-specific disclosures and the key binding JWT are
-  per-verifier. They MUST travel inside the dialog (for example in PACE
-  OPEN or ACCEPT), not on a cached track.
+  per-verifier. They MUST travel inside the dialog, bound to the peer's
+  nonce ({{pace}}), not on a cached track.
 
 * An Action Record records the sd_hash of the presentation the
   counterparty relied on in sdh.
@@ -1861,7 +1805,7 @@ so any key holder can produce Objects that decrypt. TRAIL never relies
 on them for origin. Disclosures use public-key encryption to each
 recipient, so authorities cannot forge disclosures for each other.
 
-## Replay
+## Replay {#replay}
 
 A replayed call carries a record identifier the receiver has already
 accepted. Receivers MUST keep the identifiers they accept for at least
