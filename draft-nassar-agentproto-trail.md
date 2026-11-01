@@ -62,7 +62,6 @@ normative:
   WIMSE-CREDS: I-D.ietf-wimse-workload-creds
   WIMSE-HTTPSIG: I-D.ietf-wimse-http-signature
   TXN-TOKENS: I-D.ietf-oauth-transaction-tokens
-  WIMSE-WPT: I-D.ietf-wimse-wpt
   RFC9334:
   RFC8392:
   RATS-EAR: I-D.ietf-rats-ear
@@ -83,13 +82,14 @@ informative:
   RFC6973:
   RFC8693:
   MCP-MOQT: I-D.jennings-agentproto-mcp-over-moqt
-  PACE: I-D.nandakumar-agentproto-moq-pace
+  PACE: I-D.nandakumar-agentproto-pace
   RFC7942:
   RFC9396:
   RFC9711:
   RFC9999:
   RATS-AR4SI: I-D.ietf-rats-ar4si
   WIMSE-ARCH: I-D.ietf-wimse-arch
+  WIMSE-WPT: I-D.ietf-wimse-wpt
   WIMSE-AIMS: I-D.ietf-wimse-aims
   WIMSE-ATTEST: I-D.reddy-wimse-workload-attestation
   WIMSE-AUTHZ-EVIDENCE: I-D.munoz-wimse-authorization-evidence
@@ -784,7 +784,8 @@ Records, state, and directed tracks MUST use Subgroup Delivery Mode,
 MUST NOT use Datagram Delivery Mode, and MUST NOT set a delivery
 timeout.
 
-Nothing that matters for safety may be carried in a mutable Property.
+An edge MUST NOT carry anything that a TRAIL check depends on in a
+mutable Property.
 
 ## Namespaces {#namespaces}
 
@@ -887,9 +888,10 @@ separate from bulk records and media traffic.
 
 # HTTP Binding {#http}
 
-Most agent traffic today is HTTP {{RFC9110}}: MCP {{MCP}} commonly uses its
-Streamable HTTP transport, and A2A {{A2A}} uses JSON-RPC over HTTP. The
-HTTP binding lets that traffic carry TRAIL without changing the agents.
+Most agent traffic today is HTTP {{RFC9110}}: MCP {{MCP}} commonly
+uses its Streamable HTTP transport, and A2A {{A2A}} uses JSON-RPC over
+HTTP. The HTTP binding lets that traffic carry TRAIL without changing
+the agents.
 
 ## Calls {#http-calls}
 
@@ -905,10 +907,14 @@ Content-Type: application/json
 Content-Digest: sha-256=:X48E9qOokqqrvdts8nOJRJN3OWDUoyWxBf...=:
 Trail-Record: :0oRYQ6MBJgN4HmFwcGxpY2F0aW9uL3RyYWlsLXJlY29y...:
 Signature-Input: trail=("@method" "@target-uri" "content-digest"
-    "trail-record");created=1793318400;keyid="edge-a";tag="trail"
+    "trail-record");created=1793318400;tag="trail";
+    keyid="NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs"
 Signature: trail=:MEUCIQDk3...:
 ~~~
-{: #fig-http-call title="An HTTP request carrying a record (values truncated)"}
+{: #fig-http-call title="An HTTP request carrying a record (truncated)"}
+
+The keyid is the JWK Thumbprint of the edge key, the same value as the
+record's kid.
 
 * The signature MUST cover `@method`, `@target-uri`, `content-digest`
   {{RFC9530}} when the message has content, and `trail-record`.
@@ -1095,7 +1101,7 @@ Origin of tool results:
   record in the Encrypted Properties List keeps it hidden from relays.
 
 Standalone and PACE modes:
-: In the standalone mode, on (mcp, <session-id>, ...) tracks, there is
+: In the standalone mode, on `(mcp, <session-id>, ...)` tracks, there is
   no dialog; records omit dialog-ref and record the MCP session
   identifier in the body. In the PACE mode, records carry dialog-ref as
   in {{pace}}.
@@ -1339,9 +1345,10 @@ Downstream freshness (authority to cell):
 Upstream freshness (cell to witness):
 : For every require-witness directive that applies, a cell's latest
   checkpoint MUST carry countersignatures from at least k of the named
-  witnesses, each no older than the directive's max-age. If it does not, the edge MUST NOT perform
-  covered actions except as allowed by degraded mode, and receivers
-  MUST reject calls from that cell that the directive covers.
+  witnesses, each no older than the directive's max-age. If it does
+  not, the edge MUST NOT perform covered actions except as allowed by
+  degraded mode, and receivers MUST reject calls from that cell that
+  the directive covers.
 
 An authority keeps its snapshot fresh by republishing it, even when
 nothing changes. This is the heartbeat, and it proves that the
@@ -1609,9 +1616,9 @@ PUBLISH_NAMESPACE and PUBLISH only under its own prefix
 
 Trails, state, and directed records are not public. Only authorized
 parties read them, and directed records only by their recipient. Each
-swarm is expected to name an authorization server that issues the
-tokens for reading its trails and state; how a swarm names it is an
-open issue ({{open-issues}}). That authorization server SHOULD NOT be
+swarm has an authorization server that issues the tokens for reading
+its trails and state. How a swarm names it is an open issue
+({{open-issues}}). That authorization server SHOULD NOT be
 controlled by any single operator whose cells it covers, so that the
 operator cannot choose who oversees it. Every authority that holds a
 grant from an operator in the swarm, and every witness named in a

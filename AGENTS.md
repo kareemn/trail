@@ -224,6 +224,3 @@ differences table.
   summary and the badge loses its color. Intended:
   `<span class="verdict kind">label</span>` followed by the summary paragraph.
   `page2md.py` handles both forms.
-- **Draft build break:** `(mcp, <session-id>, ...)` in the MCP over MOQT
-  section breaks the build with current kramdown-rfc and xml2rfc 3.31. Wrap it
-  in backticks.
