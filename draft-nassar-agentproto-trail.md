@@ -1015,9 +1015,9 @@ the exchange carries a record whose call-ref covers it and whose body
 lists the hashes of the fragments it completes.
 
 The protocol's own identifiers (PACE message_id, A2A task identifiers,
-MCP JSON-RPC id) SHOULD be recorded in the record body, so that the
-evidence can be matched to the protocol's own logs. They are not used
-for any TRAIL check.
+MCP JSON-RPC id, and MCP over MOQT client ID) SHOULD be recorded in
+the record body, so that the evidence can be matched to the
+protocol's own logs. They are not used for any TRAIL check.
 
 ## PACE {#pace}
 
@@ -1132,62 +1132,92 @@ Revocation at the relay:
   same participant independently of the relay, so either one is enough
   to stop it.
 
-## MCP over MOQT
+## MCP over MOQT {#mcp-moqt}
 
 Request and response tracks:
 : MCP over MOQT maps each JSON-RPC exchange onto a request track
-  published by the requester and a response track published by the
-  responder, with one Group per request. The requester's edge attaches
-  a record of kind tool-call (or send for other requests) to the
-  request Object. The responder's edge attaches a record that cites the
-  request's record to the Object that carries the result or error.
+  published by the client and a response track published by the
+  server, in the client's scope (mcp, {server-id}, clients,
+  {client-id}, ...). Each request is a new Group, and the response uses
+  the same Group ID. The client's edge attaches a record of kind
+  tool-call (or send for other requests) to the request Object. The
+  server's edge attaches a record that cites the request's record to
+  the Object that carries the final result or error.
+
+Track ownership:
+: In a client scope the client and the server publish under the same
+  namespaces, and only the track name tells a request track from a
+  response track. A receiving edge MUST check that the record's iss is
+  the edge it expects for that track: the client's edge for a request
+  track, the server's edge for a response track. A peer that publishes
+  a track belonging to the other is then refused.
 
 Multi-object responses:
-: A response Group can hold progress notifications followed by a
-  result. The Object that carries the result MUST carry a record, and
-  the general rule above applies to the notifications.
+: A response Group can hold progress notifications, in one or more
+  Subgroups, followed by the final result or error, which has the
+  highest Object ID. The Object that carries the final result MUST
+  carry a record, and the general rule above applies to the
+  notifications, taken in Object ID order. The record travels with its
+  Object, so a client that recovers a response by FETCH after a
+  reconnection verifies it the same way.
 
-Server-initiated requests:
-: Sampling and elicitation requests come from the MCP server. The
-  server's edge treats them as requests and the client's edge as
-  responses, so model use and user input requested by a tool are
-  recorded with the same rules. A sampling response SHOULD also be
-  recorded as a model-call record by the client's edge.
+Multi round-trip requests:
+: MCP servers do not send requests to clients. A server that needs an
+  elicitation, a sampling result, or the client's roots ends the
+  response with an input-required result, which carries a record like
+  any other result. The client's retry is a new request in a new Group,
+  and its record cites the input-required result's record. Sampling
+  done by the client to answer it is recorded as a model-call record by
+  the client's edge, and the retry cites that record as input. An
+  elicitation that a person answers can be gated ({{gates}}).
+
+Cancellation:
+: A client cancels a request by publishing notifications/cancelled in
+  the request's Group. That Object is a control message and carries a
+  record, as does a PACE CANCEL that names the request.
 
 Origin of tool results:
-: MCP over MOQT requires Secure Objects on tool, sampling, and
-  elicitation tracks that cross relays, and notes that shared keys do
-  not show which endpoint produced an Object, so the application needs
-  a per-publisher signature. TRAIL_RECORD is that signature, and the
-  record in the Encrypted Properties List keeps it hidden from relays.
+: Secure Objects keys are shared by a track's publisher and
+  subscribers, so they do not show which endpoint produced an Object.
+  TRAIL_RECORD is a per-publisher signature, and placing it in the
+  Encrypted Properties List keeps it hidden from relays.
 
 Standalone and PACE modes:
-: In the standalone mode, on `(mcp, <session-id>, ...)` tracks, there is
-  no dialog; records omit dialog-ref and record the MCP session
-  identifier in the body. In the PACE mode, records carry dialog-ref as
-  in {{pace}}.
+: In standalone mode there is no dialog. Records omit dialog-ref and
+  record the server ID, the client ID, and the JSON-RPC id in the body;
+  MCP keeps no session, so there is no session identifier to record.
+  In PACE mode the same tracks move under ("pace", "dialogs",
+  {dialog-id}, {agent-id}, "mcp", ...), each MCP request carries the
+  PACE dialog reference in `_meta`, and records carry dialog-ref as in
+  {{pace}}.
 
 Authorization:
-: MCP over MOQT maps the MCP OAuth framework onto MOQT by minting C4M
-  tokens from the OAuth grant and binding them with DPoP. TRAIL uses the
-  same tokens ({{authorization}}). The OAuth access token presented to
-  the MCP server, or a Transaction Token derived from it, is recorded by
-  hash in oth or tth.
+: MCP over MOQT presents an OAuth access token, or a C4M token minted
+  from the OAuth grant and bound with the DPoP binding of C4M, to the
+  relay. Credentials that the MCP server itself verifies travel in each
+  request's `_meta`. TRAIL uses the same C4M tokens ({{authorization}}).
+  The access token, or a Transaction Token derived from it, is recorded
+  by hash in oth or tth.
 
-Resources and skills:
-: Resource, prompt, and skill tracks carry content the server
-  publishes, not actions. An edge SHOULD record a state-read record
-  when an agent uses such content in a later action, and the later
-  action cites it, so context provenance follows data from a tool into
-  a decision.
+Catalog, resources, prompts, and skills:
+: The catalog, resource, prompt, and skill tracks carry content that
+  the server publishes, not actions, and relays serve them from cache.
+  Tool definitions and client-executed skill instructions steer the
+  model, so an edge SHOULD record a state-read record when an agent
+  uses such content, and the later action cites it. Context provenance
+  then follows data from a server into a decision. A server-executed
+  skill (skills/invoke) and a task are requests like tools/call, and
+  are recorded the same way.
 
 ## A2A and MCP over HTTP
 
 A2A requests and MCP Streamable HTTP requests carry a Trail-Record
 field as in {{http-calls}}. The responder's record is carried in the
 response, or, for a streamed response, in the event that completes the
-exchange. Records are appended to trails on whichever evidence plane
-the deployment uses ({{hybrid}}).
+exchange. When the message carries a PACE dialog reference, in MCP
+`_meta` or in A2A message metadata, the record carries the same values
+in dialog-ref. Records are appended to trails on whichever evidence
+plane the deployment uses ({{hybrid}}).
 
 # Trails, Checkpoints, and Witnesses {#trails}
 
