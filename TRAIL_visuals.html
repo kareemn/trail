@@ -1,0 +1,1683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TRAIL: what the draft defines, shown with pictures</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper: #EEF1F4;
+  --panel: #FFFFFF;
+  --ink: #18212B;
+  --muted: #5A6573;
+  --rule: #CBD2DA;
+  --http: #A8641A;
+  --moq: #1C7898;
+  --sig: #3D7A2C;
+  --hold: #C23B30;
+  --stage: #14171C;
+  --stage-ink: #E8ECF1;
+  color-scheme: light;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #11151A; --panel: #191E25; --ink: #E5E9EE; --muted: #9AA4B0; --rule: #2C343E;
+    --http: #F0AC5F; --moq: #58C4DD; --sig: #83C167; --hold: #FC6255;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #11151A; --panel: #191E25; --ink: #E5E9EE; --muted: #9AA4B0; --rule: #2C343E;
+  --http: #F0AC5F; --moq: #58C4DD; --sig: #83C167; --hold: #FC6255;
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: inherit; }
+html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+body {
+  margin: 0; background: var(--paper); color: var(--ink);
+  font: 400 1.0625rem/1.6 "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+main { max-width: 46rem; margin: 0 auto; padding: 0 1.25rem 4rem; }
+h2 { font-size: 1.6rem; line-height: 1.2; font-weight: 600; margin: 3.5rem 0 .75rem; letter-spacing: -.01em; }
+p { margin: 0 0 1rem; max-width: 38rem; }
+code, .mono { font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace; font-size: .88em; }
+a { color: var(--moq); }
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 3px solid var(--moq); outline-offset: 2px; }
+
+/* hero: the acronym ladder */
+.hero { padding: 3.5rem 0 1.5rem; }
+.ladder { margin: 0 0 1.75rem; font-weight: 700; line-height: 1; }
+.ladder .row { display: flex; align-items: baseline; gap: .1em; }
+.ladder .cap { font-size: clamp(3.2rem, 15vw, 5.6rem); letter-spacing: -.02em; width: .78em; }
+.ladder .rest { font-size: clamp(1rem, 3.8vw, 1.45rem); font-weight: 300; color: var(--muted); letter-spacing: 0; }
+.lede { font-size: 1.2rem; line-height: 1.55; font-weight: 400; }
+.byline { color: var(--muted); font-size: .95rem; }
+
+/* animation stage */
+.stage { margin: 1.75rem -1.25rem 0; background: var(--stage); }
+@media (min-width: 48rem) { .stage { margin: 2rem 0 0; border-radius: 10px; overflow: hidden; } }
+.stage canvas { display: block; width: 100%; aspect-ratio: 3 / 2; }
+.controls { display: flex; align-items: center; gap: .75rem; padding: .5rem .9rem .7rem; color: var(--stage-ink); }
+.controls button {
+  font: 600 .9rem "IBM Plex Sans", system-ui, sans-serif; color: var(--stage-ink);
+  background: transparent; border: 1px solid #3A424D; border-radius: 6px; padding: .3rem .8rem; min-width: 4.8rem; cursor: pointer;
+}
+.controls input[type=range] { flex: 1; accent-color: #58C4DD; }
+
+/* bindings */
+.pair { display: grid; gap: 1rem; margin-top: 1.25rem; }
+@media (min-width: 40rem) { .pair { grid-template-columns: 1fr 1fr; } }
+.binding { background: var(--panel); border-top: 4px solid var(--c); padding: 1rem 1.1rem 1.1rem; border-radius: 0 0 8px 8px; }
+.binding h3 { margin: 0 0 .5rem; font-size: 1.15rem; color: var(--c); }
+.binding p { font-size: .98rem; margin-bottom: .75rem; }
+.binding pre { margin: 0; padding: .7rem .8rem; background: var(--paper); border-radius: 6px; overflow-x: auto; font-size: .78rem; line-height: 1.5; }
+.binding pre b { color: var(--sig); font-weight: 500; }
+.shared { margin-top: 1.25rem; padding-left: 1rem; border-left: 3px solid var(--sig); }
+
+/* comparison */
+.compare { margin: 1.25rem 0 0; padding: 0; list-style: none; }
+.compare li { padding: 1rem 0; border-top: 1px solid var(--rule); }
+.compare li:last-child { border-bottom: 1px solid var(--rule); }
+.compare h3 { margin: 0 0 .4rem; font-size: 1.05rem; font-weight: 600; }
+.compare .side { display: grid; grid-template-columns: 3.4rem 1fr; gap: .1rem .6rem; font-size: .96rem; line-height: 1.45; }
+.compare .side .h, .compare .side .m { font-weight: 600; font-size: .85rem; padding-top: .08rem; }
+.compare .h { color: var(--http); } .compare .m { color: var(--moq); }
+.compare .m + .mt { color: var(--ink); }
+.compare .ht { color: var(--muted); }
+
+/* profiles */
+.profiles { display: grid; gap: .6rem; margin-top: 1rem; }
+.profile { display: grid; grid-template-columns: 5rem 1fr; gap: .75rem; align-items: baseline; padding: .75rem 1rem; background: var(--panel); border-radius: 8px; }
+.profile strong { font-size: 1rem; }
+.profile.rec { outline: 2px solid var(--moq); }
+.profile small { display: block; color: var(--moq); font-weight: 600; font-size: .85rem; }
+.rules { padding-left: 1.2rem; margin: 0 0 1rem; max-width: 38rem; }
+.rules li { margin-bottom: .6rem; }
+.angles p { margin: 0; font-size: .98rem; color: var(--muted); }
+.where { color: var(--muted); font-size: .88rem; margin: -.4rem 0 .9rem; }
+.contents { margin-top: 2.5rem; padding: 1.1rem 1.25rem 1.2rem; background: var(--panel); border-radius: 8px; }
+.contents h2 { margin: 0 0 .6rem; font-size: 1.2rem; }
+.contents ol { margin: 0; padding-left: 1.3rem; }
+.contents li { margin: .3rem 0; }
+.tablewrap { overflow-x: auto; margin-top: 1rem; }
+table.reuse { border-collapse: collapse; width: 100%; font-size: .95rem; }
+table.reuse th, table.reuse td { text-align: left; padding: .55rem .6rem .55rem 0; border-top: 1px solid var(--rule); vertical-align: top; }
+table.reuse th { font-weight: 600; border-top: 0; }
+table.reuse td:last-child { color: var(--muted); }
+.usecase { margin-top: 2.25rem; }
+.usecase h3 { font-size: 1.15rem; margin: 0 0 .4rem; }
+.check { font-size: .95rem; padding: .6rem .8rem; border-radius: 6px; background: var(--panel); border-left: 4px solid var(--c); }
+.check strong { color: var(--c); }
+.check.ok { --c: var(--sig); } .check.limit { --c: var(--http); } .check.ext { --c: var(--hold); }
+footer { margin-top: 3.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: .9rem; }
+
+.legend { display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: .5rem 1rem; margin: 1rem 0 0; padding: 0; list-style: none; font-size: .95rem; }
+.legend li { display: flex; gap: .6rem; align-items: baseline; }
+.sw { flex: none; width: .95rem; height: .95rem; border-radius: 3px; border: 2.5px solid var(--sw); background: color-mix(in srgb, var(--sw) 18%, transparent); transform: translateY(.12rem); }
+.sw.dash { border-style: dashed; background: transparent; }
+.sw.tag { background: var(--sw); border-color: var(--sw); }
+.legend code { color: var(--muted); }
+table.gloss { border-collapse: collapse; width: 100%; font-size: .93rem; }
+table.gloss th, table.gloss td { text-align: left; padding: .5rem .6rem .5rem 0; border-top: 1px solid var(--rule); vertical-align: top; }
+table.gloss th { font-weight: 600; border-top: 0; }
+table.gloss td:first-child { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: .85rem; white-space: nowrap; }
+.gap { color: var(--hold); font-weight: 600; }
+.draftcheck { font-size: .93rem; padding: .65rem .85rem; border-radius: 6px; background: var(--panel); margin-top: .9rem; }
+.draftcheck p { margin: 0 0 .35rem; } .draftcheck p:last-child { margin: 0; }
+.draftcheck .uses { color: var(--muted); }
+.draftcheck .miss { color: var(--hold); }
+.verdict { display: inline-block; font-weight: 600; font-size: .85rem; padding: .05rem .5rem; border-radius: 999px; margin-left: .35rem; vertical-align: .1rem; }
+.verdict.ok { background: color-mix(in srgb, var(--sig) 20%, transparent); color: var(--sig); }
+.verdict.limit { background: color-mix(in srgb, var(--http) 22%, transparent); color: var(--http); }
+.verdict.ext { background: color-mix(in srgb, var(--hold) 18%, transparent); color: var(--hold); }
+h3.scene { font-size: 1.15rem; margin: 2.5rem 0 .4rem; }
+.where { margin-top: .6rem; }
+.stage.big { position: fixed; inset: 0; z-index: 50; margin: 0; border-radius: 0; display: flex; flex-direction: column; justify-content: center;
+  padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px); }
+.stage.big canvas { width: min(100vw, calc((100vh - 4rem) * 1.5)); margin: 0 auto; }
+.stage.big .controls { width: min(100vw, calc((100vh - 4rem) * 1.5)); margin: 0 auto; }
+body.noscroll { overflow: hidden; }
+.naming { font-size: .95rem; padding: .7rem .9rem; background: var(--panel); border-radius: 8px; margin-top: 1rem; }
+.naming p { margin: 0 0 .4rem; } .naming p:last-child { margin: 0; }
+.mono.term { color: #B08A1E; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .mono.term { color: #E0C46C; } }
+:root[data-theme="dark"] .mono.term { color: #E0C46C; }
+table.track { border-collapse: collapse; width: 100%; font-size: .9rem; }
+table.track th, table.track td { text-align: left; padding: .5rem .6rem .5rem 0; border-top: 1px solid var(--rule); vertical-align: top; }
+table.track th { font-weight: 600; border-top: 0; }
+.blocknote { color: var(--muted); font-size: .95rem; }
+</style>
+</head>
+<body>
+<main>
+
+<header class="hero">
+  <h1 class="ladder" aria-label="TRAIL: Tamper-evident Records for Agent Interactions and Liveness">
+    <span class="row" aria-hidden="true"><span class="cap">T</span><span class="rest">amper-evident</span></span>
+    <span class="row" aria-hidden="true"><span class="cap">R</span><span class="rest">ecords for</span></span>
+    <span class="row" aria-hidden="true"><span class="cap">A</span><span class="rest">gent</span></span>
+    <span class="row" aria-hidden="true"><span class="cap">I</span><span class="rest">nteractions and</span></span>
+    <span class="row" aria-hidden="true"><span class="cap">L</span><span class="rest">iveness</span></span>
+  </h1>
+  <p class="lede">TRAIL is an IETF draft that makes agent-to-agent and agent-to-tool communication auditable and revocable. Wherever agents run, an edge signs a record of each action an agent takes, keeps those records in a trail nobody can quietly change, and stops the agent’s traffic if the parties it answers to can’t currently see it. TRAIL doesn’t decide whether an action is safe. It lets the parties that do decide approve, refuse, or stop actions, and see the records they need to judge them.</p>
+  <p class="byline">Kareem Nassar, Suhas Nandakumar, and Cullen Jennings. Draft: <span class="mono">draft-nassar-agentproto-trail</span>.</p>
+</header>
+
+<section id="legend">
+  <h2>How to read the pictures</h2>
+  <p>Every animation uses the same layout: companies (operators) at the top, the evidence plane below them, and the parties that read it at the bottom. The same colors mean the same thing everywhere.</p>
+  <ul class="legend">
+    <li><span class="sw" style="--sw:#5A6370"></span><span><strong>Machine</strong>: the physical or virtual host</span></li>
+    <li><span class="sw dash" style="--sw:#4E6A9E"></span><span><strong>Sandbox</strong>: where the agent runs</span></li>
+    <li><span class="sw" style="--sw:#9ECE6A"></span><span><strong>Cell</strong>: everything behind one edge</span></li>
+    <li><span class="sw" style="--sw:#7AA2F7"></span><span><strong>Agent</strong>: the AI (model + tools)</span></li>
+    <li><span class="sw" style="--sw:#FF9E64"></span><span><strong>Edge</strong>: where traffic leaves the cell</span></li>
+    <li><span class="sw tag" style="--sw:#73DACA"></span><span><strong>Attestation level</strong>: under each edge, with its form</span></li>
+    <li><span class="sw dash" style="--sw:#8A9099"></span><span><strong>Operator</strong>: the company running the cells</span></li>
+    <li><span class="sw tag" style="--sw:#E0C46C"></span><span><strong>Action Record</strong> (A1, B1: edge and number)</span></li>
+    <li><span class="sw" style="--sw:#7DCFFF"></span><span><strong>Evidence plane</strong>, with one box per trail, state, or set of directed records</span></li>
+    <li><span class="sw" style="--sw:#BB9AF7"></span><span><strong>Authority</strong>: e.g. Regulator R</span></li>
+    <li><span class="sw" style="--sw:#73DACA"></span><span><strong>Witness</strong>: e.g. Notary N</span></li>
+    <li><span class="sw" style="--sw:#A9B1D6"></span><span><strong>Service</strong> outside TRAIL</span></li>
+    <li><span class="sw dash" style="--sw:#F7768E"></span><span><strong>Not in the draft yet</strong></span></li>
+  </ul>
+  <div class="naming">
+    <p><strong>Names and roles.</strong> Parties are labeled with an example name, like Regulator R. The <span class="mono term">yellow mono</span> text under it is the role from the draft. Chips on top of an edge show what that edge currently holds, like the latest copy of R’s state.</p>
+  </div>
+</section>
+
+<section id="how">
+  <h2>How it works</h2>
+  <p>Each building block below changes one thing in the same picture. The scenarios later are built only from these.</p>
+<h3 class="scene" id="h-a">The pieces and their names</h3>
+<p>Operators run agents in sandboxes on machines. The edge is where traffic leaves the cell. Each edge writes a record to its trail on the evidence plane before a call leaves; Regulator R publishes rules there, and Notary N cosigns trails.</p>
+<figure class="stage" id="a" data-scene="keyTerms" aria-label="Animation: the pieces of a TRAIL deployment labeled with their draft terms">
+  <canvas width="900" height="600"></canvas>
+  <div class="controls"><button type="button" class="playbtn">Play</button><input type="range" min="0" max="1000" value="0" aria-label="Animation position"><button type="button" class="bigbtn" aria-label="Show larger">Larger</button></div>
+</figure>
+<p class="where">In the draft: terminology (1.7); architecture (2)</p>
+
+  <h3 class="scene" id="terms">The draft’s terms, in plain words</h3>
+  <div class="tablewrap"><table class="gloss">
+    <thead><tr><th>Term</th><th>What it is</th></tr></thead>
+    <tbody>
+      <tr><td>sandbox</td><td>Where an agent runs: a container, microVM, or similar.</td></tr>
+      <tr><td>cell</td><td>Everything behind one edge: a sandbox, a confidential VM, or a whole machine.</td></tr>
+      <tr><td>edge</td><td>Where traffic leaves the cell. Holds the keys, checks rules, signs, records, and blocks.</td></tr>
+      <tr><td>attestation level</td><td><code>software</code>, <code>tee</code>, or <code>isolated</code>: who can read the edge’s key, and what can go around it.</td></tr>
+      <tr><td>verifier</td><td>Checks what holds an edge’s key and issues an Attestation Result (from RATS).</td></tr>
+      <tr><td>agent, principal, operator</td><td>The AI; the person it acts for; the company running it.</td></tr>
+      <tr><td>Action Record</td><td>The signed record of one action, written to the trail before the call leaves.</td></tr>
+      <tr><td>trail, checkpoint</td><td>An edge’s records in order; a signed summary closing each stretch of it.</td></tr>
+      <tr><td>evidence plane</td><td>Where trails, state, and directed records are published: a MoQ relay or HTTP servers.</td></tr>
+      <tr><td>state</td><td>What each party republishes on a schedule: an authority’s rules, an operator’s grants, an edge’s level.</td></tr>
+      <tr><td>directive</td><td>A rule in an authority’s state: <code>policy</code>, <code>hold</code>, <code>freshness-budget</code>, <code>require-gate</code>, <code>require-witness</code>, <code>require-level</code>, <code>require-admission</code>, <code>require-record</code>.</td></tr>
+      <tr><td>directed record</td><td>A record published for one party, which can be encrypted to it: gate requests, approvals, disclosures.</td></tr>
+      <tr><td>grant</td><td>A right an operator gives an authority: which directives it may issue, for what, and which fields it may read.</td></tr>
+      <tr><td>authority, witness</td><td>Sets rules within its grants; checks trails are complete and cosigns them.</td></tr>
+      <tr><td>admission issuer, admission token</td><td>A party that hands out a fixed number of tokens; the token an agent’s records cite.</td></tr>
+    </tbody>
+  </table></div>
+<h3 class="scene" id="h-i">Where the edge is decides the attestation level</h3>
+<p>The agent always runs in a sandbox. What changes is where the edge sits, and so what the cell contains. Watch Machine A change level: as a sidecar (software), the host can read the edge’s key and a sandbox escape goes around it; inside a confidential VM (tee), the key is hidden but an escape into the VM still goes around it; as a DPU on the network card (isolated), neither works. Verifier V checks which it is, Edge A publishes the result in its state, and Edge B reads it.</p>
+<figure class="stage" id="i" data-scene="edgeLevels" aria-label="Animation: Machine A's edge moving from software to tee to isolated">
+  <canvas width="900" height="600"></canvas>
+  <div class="controls"><button type="button" class="playbtn">Play</button><input type="range" min="0" max="1000" value="0" aria-label="Animation position"><button type="button" class="bigbtn" aria-label="Show larger">Larger</button></div>
+</figure>
+<p class="where">In the draft: attestation levels (2.1); attestation (11.4)</p>
+<h3 class="scene" id="h-c">Every call leaves records on both sides</h3>
+<p>Edge A writes A1 to its trail before the call leaves. Edge B checks A1 and writes B1 citing it; the reply carries B2, and Edge A writes A2 citing that. Each trail ends up with a record citing the other side’s.</p>
+<figure class="stage" id="c" data-scene="records" aria-label="Animation: records written on both sides of a call and its reply">
+  <canvas width="900" height="600"></canvas>
+  <div class="controls"><button type="button" class="playbtn">Play</button><input type="range" min="0" max="1000" value="0" aria-label="Animation position"><button type="button" class="bigbtn" aria-label="Show larger">Larger</button></div>
+</figure>
+<p class="where">In the draft: Action Record (3); core rule (4)</p>
+<h3 class="scene" id="h-h">What makes records tamper-evident</h3>
+<p>Each record is signed, linked into its trail, closed by a checkpoint that a notary cosigns, and cited by the other side. Changing a record, removing one, or publishing a second version each breaks one of those.</p>
+<figure class="stage" id="h" data-scene="tamper" aria-label="Animation: three attempts to change records, each caught">
+  <canvas width="900" height="600"></canvas>
+  <div class="controls"><button type="button" class="playbtn">Play</button><input type="range" min="0" max="1000" value="0" aria-label="Animation position"><button type="button" class="bigbtn" aria-label="Show larger">Larger</button></div>
+</figure>
+<p class="where">In the draft: what makes records tamper-evident (8.5)</p>
+<h3 class="scene" id="h-p">An authority’s rules: policy and hold</h3>
+<p>An authority publishes its rules in its state; the draft calls them directives. A <code>policy</code> says what’s allowed, and a <code>hold</code> stops matching actions. Both act as soon as the edge has them.</p>
+<figure class="stage" id="p" data-scene="policyHold" aria-label="Animation: a policy refusing a delete and a hold stopping an agent">
+  <canvas width="900" height="600"></canvas>
+  <div class="controls"><button type="button" class="playbtn">Play</button><input type="range" min="0" max="1000" value="0" aria-label="Animation position"><button type="button" class="bigbtn" aria-label="Show larger">Larger</button></div>
+</figure>
+<p class="where">In the draft: state snapshots (9.1); how directives act (9.2)</p>
+<h3 class="scene" id="h-e">An authority’s rules: freshness-budget</h3>
+<p>A <code>freshness-budget</code> says how old the edge’s copy of the authority’s state may get before each kind of action stops. Unlike a policy or hold, it acts only when the authority goes quiet.</p>
+<figure class="stage" id="e" data-scene="freshness" aria-label="Animation: payments stopping at 30 seconds and lookups at 90 after the regulator goes offline">
+  <canvas width="900" height="600"></canvas>
+  <div class="controls"><button type="button" class="playbtn">Play</button><input type="range" min="0" max="1000" value="0" aria-label="Animation position"><button type="button" class="bigbtn" aria-label="Show larger">Larger</button></div>
+</figure>
+<p class="where">In the draft: freshness rules (9.3); budgets (9.4); degraded mode (9.5)</p>
+<h3 class="scene" id="h-q">An authority’s rules: require-gate, using directed records</h3>
+<p>A <code>require-gate</code> makes the edge hold an action until the authority approves. The request and the approval travel as directed records: records published for one party, which can be encrypted to it. A gate can cover every action an agent takes; then everything waits for the authority.</p>
+<figure class="stage" id="q" data-scene="gates" aria-label="Animation: a payment held until the regulator approves it">
+  <canvas width="900" height="600"></canvas>
+  <div class="controls"><button type="button" class="playbtn">Play</button><input type="range" min="0" max="1000" value="0" aria-label="Animation position"><button type="button" class="bigbtn" aria-label="Show larger">Larger</button></div>
+</figure>
+<p class="where">In the draft: gates (10.1); directed records (5.3, 6.3)</p>
+<h3 class="scene" id="h-r">Grants: what an operator lets an authority do</h3>
+<p>An authority can only act within the rights an operator grants it. Grants are in the operator’s own signed state. Here Operator X grants Regulator R the right to hold; Operator Y doesn’t, so R’s hold stops Agent A and not Agent B.</p>
+<figure class="stage" id="r" data-scene="grants" aria-label="Animation: a hold applied by one operator’s edge and ignored by the other’s">
+  <canvas width="900" height="600"></canvas>
+  <div class="controls"><button type="button" class="playbtn">Play</button><input type="range" min="0" max="1000" value="0" aria-label="Animation position"><button type="button" class="bigbtn" aria-label="Show larger">Larger</button></div>
+</figure>
+<p class="where">In the draft: grants (9.1)</p>
+<h3 class="scene" id="h-j">Witnesses and authorities do different jobs</h3>
+<p>Notary N checks that it has every record and cosigns; it has no rights over actions. Its cosignatures matter because an authority’s rule, <code>require-witness</code>, makes Edge B refuse A’s calls when A’s trail hasn’t been cosigned recently.</p>
+<figure class="stage" id="j" data-scene="witnesses" aria-label="Animation: a notary going quiet and an authority's rule stopping calls">
+  <canvas width="900" height="600"></canvas>
+  <div class="controls"><button type="button" class="playbtn">Play</button><input type="range" min="0" max="1000" value="0" aria-label="Animation position"><button type="button" class="bigbtn" aria-label="Show larger">Larger</button></div>
+</figure>
+<p class="where">In the draft: authorities and witnesses (2.2); freshness rules (9.3)</p>
+<h3 class="scene" id="h-x">Disclosure: one record, a view per authority</h3>
+<p>Records hide sensitive fields. Edge A sends the hidden fields only to the authorities whose grant covers them, as directed records encrypted to them. The disclosure is itself recorded.</p>
+<figure class="stage" id="x" data-scene="disclosure" aria-label="Animation: the regulator seeing an amount the health authority can't">
+  <canvas width="900" height="600"></canvas>
+  <div class="controls"><button type="button" class="playbtn">Play</button><input type="range" min="0" max="1000" value="0" aria-label="Animation position"><button type="button" class="bigbtn" aria-label="Show larger">Larger</button></div>
+</figure>
+<p class="where">In the draft: selective disclosure (3.4); disclosure on request (10.3)</p>
+<h3 class="scene" id="h-y">Admission tokens: a cap across machines</h3>
+<p>An admission issuer hands out a fixed number of tokens and publishes which are valid. Each agent’s records cite its token; edges refuse calls whose records cite no valid token.</p>
+<figure class="stage" id="y" data-scene="admission" aria-label="Animation: an agent without a token refused">
+  <canvas width="900" height="600"></canvas>
+  <div class="controls"><button type="button" class="playbtn">Play</button><input type="range" min="0" max="1000" value="0" aria-label="Animation position"><button type="button" class="bigbtn" aria-label="Show larger">Larger</button></div>
+</figure>
+<p class="where">In the draft: admission and counting (10.2)</p>
+
+</section>
+
+<section id="moq">
+  <h2>MoQ and HTTP</h2>
+  <p>Everything above works over either binding. These two blocks show where they differ.</p>
+<h3 class="scene" id="h-g">Killswitch: MoQ and HTTP compared</h3>
+<p>A hold used to stop agents at once. Both operators granted Regulator R the right to hold. Over MoQ the hold is pushed to the edge; over HTTP the edge sees it at its next poll, so a few calls still leave.</p>
+<figure class="stage" id="g" data-scene="killswitch" aria-label="Animation: a hold stopping a MoQ edge at once and an HTTP edge at its next poll">
+  <canvas width="900" height="600"></canvas>
+  <div class="controls"><button type="button" class="playbtn">Play</button><input type="range" min="0" max="1000" value="0" aria-label="Animation position"><button type="button" class="bigbtn" aria-label="Show larger">Larger</button></div>
+</figure>
+<p class="where">In the draft: why MOQT (2.4); HTTP state (6.3)</p>
+<h3 class="scene" id="h-f">Seeing machines nobody announced</h3>
+<p>A regulator should see every machine an operator runs, including ones the operator didn’t mention. Over MoQ it subscribes once to the whole swarm. Over HTTP it learns of new machines from the notaries’ cosignatures, because a machine can’t act without one.</p>
+<figure class="stage" id="f" data-scene="discovery" aria-label="Animation: a new machine's trail reaching the regulator">
+  <canvas width="900" height="600"></canvas>
+  <div class="controls"><button type="button" class="playbtn">Play</button><input type="range" min="0" max="1000" value="0" aria-label="Animation position"><button type="button" class="bigbtn" aria-label="Show larger">Larger</button></div>
+</figure>
+<p class="where">In the draft: namespaces (5.2); trails as static tiles (6.2)</p>
+
+</section>
+
+<section id="scenarios">
+  <h2>What you can build with it</h2>
+  <p>Eight scenarios built from the blocks above. Each lists the blocks it uses. Parts the draft doesn’t define yet are drawn as dashed red boxes.</p>
+<h3 class="scene" id="monitor">1. An independent monitor<span class="verdict Today a monitor runs inside the agent’s machine; if it crashes, the agent keeps going. Here Monitor M is outside both operators and is both an authority and a witness, so its silence stops Agent A.">limit</span></h3>
+<p>Works, with limits</p>
+<figure class="stage" id="s-monitor" data-scene="scMonitor" aria-label="Animation: a crashed monitor stopping an agent">
+  <canvas width="900" height="600"></canvas>
+  <div class="controls"><button type="button" class="playbtn">Play</button><input type="range" min="0" max="1000" value="0" aria-label="Animation position"><button type="button" class="bigbtn" aria-label="Show larger">Larger</button></div>
+</figure>
+<div class="draftcheck"><p class="uses"><strong>Uses:</strong> <a href="#h-e">freshness-budget</a>, <a href="#h-j">witnesses and authorities</a></p><p class="miss"><strong>Missing:</strong> letting the monitor replace an action rather than only block or approve it (draft Appendix D.2). Freshness shows the monitor is reachable and receiving, not that it reviewed anything.</p></div>
+<h3 class="scene" id="replicate">2. Limiting how many agents can run<span class="verdict An agent copies itself. The copy has no admission token, so TRAIL peers refuse it. A server that doesn’t run TRAIL still answers, but the copy’s calls are in A’s trail.">limit</span></h3>
+<p>Works, with limits</p>
+<figure class="stage" id="s-replicate" data-scene="scReplicate" aria-label="Animation: a copy without a token refused by a TRAIL peer">
+  <canvas width="900" height="600"></canvas>
+  <div class="controls"><button type="button" class="playbtn">Play</button><input type="range" min="0" max="1000" value="0" aria-label="Animation position"><button type="button" class="bigbtn" aria-label="Show larger">Larger</button></div>
+</figure>
+<div class="draftcheck"><p class="uses"><strong>Uses:</strong> <a href="#h-y">admission tokens</a>, <a href="#h-c">records on both sides</a></p><p class="miss"><strong>Missing:</strong> metered tokens for spend and API budgets (Appendix D.5).</p></div>
+<h3 class="scene" id="worm">3. Stopping a prompt-injection worm<span class="verdict An injection spreads from Agent A to Agent B at another company. Records cite what was received, so Regulator R can follow the path and hold both agents by name.">ext</span></h3>
+<p>Partly works</p>
+<figure class="stage" id="s-worm" data-scene="scWorm" aria-label="Animation: an injection spreading and a hold stopping both agents">
+  <canvas width="900" height="600"></canvas>
+  <div class="controls"><button type="button" class="playbtn">Play</button><input type="range" min="0" max="1000" value="0" aria-label="Animation position"><button type="button" class="bigbtn" aria-label="Show larger">Larger</button></div>
+</figure>
+<div class="draftcheck"><p class="uses"><strong>Uses:</strong> <a href="#h-c">records on both sides</a>, <a href="#h-p">policy and hold</a>, <a href="#h-r">grants</a></p><p class="miss"><strong>Missing:</strong> a hold that matches everything descending from an input (Appendix D.1). The edge sees what an agent received, not what the model used.</p></div>
+<h3 class="scene" id="breaker">4. Cutting off a compromised tool server<span class="verdict One hold from Security team T naming the server stops every company that granted T that right.">ok</span></h3>
+<p>Works</p>
+<figure class="stage" id="s-breaker" data-scene="scBreaker" aria-label="Animation: one hold stopping calls to a compromised server">
+  <canvas width="900" height="600"></canvas>
+  <div class="controls"><button type="button" class="playbtn">Play</button><input type="range" min="0" max="1000" value="0" aria-label="Animation position"><button type="button" class="bigbtn" aria-label="Show larger">Larger</button></div>
+</figure>
+<div class="draftcheck"><p class="uses"><strong>Uses:</strong> <a href="#h-p">policy and hold</a>, <a href="#h-r">grants</a></p></div>
+<h3 class="scene" id="dial">5. Allowing less when oversight lags<span class="verdict Each kind of action needs a more or less recent cosignature. As Notary N falls behind, risky actions stop first.">ok</span></h3>
+<p>Works</p>
+<figure class="stage" id="s-dial" data-scene="scDial" aria-label="Animation: risky actions blocked as the notary falls behind">
+  <canvas width="900" height="600"></canvas>
+  <div class="controls"><button type="button" class="playbtn">Play</button><input type="range" min="0" max="1000" value="0" aria-label="Animation position"><button type="button" class="bigbtn" aria-label="Show larger">Larger</button></div>
+</figure>
+<div class="draftcheck"><p class="uses"><strong>Uses:</strong> <a href="#h-e">freshness-budget</a>, <a href="#h-j">witnesses and authorities</a></p></div>
+<h3 class="scene" id="approval">6. A person at another company approves an action<span class="verdict Bank K is an authority with a gate on wires to it. Officer O approves with a passkey; the wire’s record cites the approval.">ext</span></h3>
+<p>Needs one addition</p>
+<figure class="stage" id="s-approval" data-scene="scApproval" aria-label="Animation: a wire held until an officer at the bank approves it">
+  <canvas width="900" height="600"></canvas>
+  <div class="controls"><button type="button" class="playbtn">Play</button><input type="range" min="0" max="1000" value="0" aria-label="Animation position"><button type="button" class="bigbtn" aria-label="Show larger">Larger</button></div>
+</figure>
+<div class="draftcheck"><p class="uses"><strong>Uses:</strong> <a href="#h-q">gates and directed records</a>, <a href="#h-r">grants</a></p><p class="miss"><strong>Missing:</strong> how a passkey (WebAuthn) signature becomes an approval record (Appendix D.3).</p></div>
+<h3 class="scene" id="incident">7. Reporting an incident without customer data<span class="verdict Safety institute S checks a record against the cosigned trail and sees what happened, without seeing the customer.">limit</span></h3>
+<p>Works, with limits</p>
+<figure class="stage" id="s-incident" data-scene="scIncident" aria-label="Animation: an incident report that verifies without revealing customers">
+  <canvas width="900" height="600"></canvas>
+  <div class="controls"><button type="button" class="playbtn">Play</button><input type="range" min="0" max="1000" value="0" aria-label="Animation position"><button type="button" class="bigbtn" aria-label="Show larger">Larger</button></div>
+</figure>
+<div class="draftcheck"><p class="uses"><strong>Uses:</strong> <a href="#h-h">tamper evidence</a>, <a href="#h-x">disclosure</a></p></div>
+<h3 class="scene" id="model">8. Proving which model was used<span class="verdict The model server publishes which model it is attested to run. The edge records it and refuses a swapped model.">ext</span></h3>
+<p>Needs two additions</p>
+<figure class="stage" id="s-model" data-scene="scModel" aria-label="Animation: a swapped model refused at the edge">
+  <canvas width="900" height="600"></canvas>
+  <div class="controls"><button type="button" class="playbtn">Play</button><input type="range" min="0" max="1000" value="0" aria-label="Animation position"><button type="button" class="bigbtn" aria-label="Show larger">Larger</button></div>
+</figure>
+<div class="draftcheck"><p class="uses"><strong>Uses:</strong> <a href="#h-i">attestation levels</a>, <a href="#h-c">records on both sides</a></p><p class="miss"><strong>Missing:</strong> a cite of the server’s attestation, and a claim naming the model (Appendix D.4).</p></div>
+
+</section>
+
+<section id="limits">
+  <h2>What TRAIL doesn’t cover</h2>
+  <ul class="compare angles">
+    <li><h3>Blocking oversight can stop agents</h3><p>If an attacker cuts off the regulator, agents stop. Per-action time limits, short grace periods, several notaries, and backup paths reduce the damage.</p></li>
+    <li><h3>Agents that bypass the edge</h3><p>At the software and tee levels, an agent that escapes can go around the edge. TRAIL peers still refuse its unsigned calls; other servers won’t.</p></li>
+    <li><h3>A false record made at the start</h3><p>Tamper-evident isn’t tamper-proof. A compromised edge can sign a false record; the attestation level, the other side’s records, and the notaries limit how far it goes.</p></li>
+    <li><h3>Deciding what is safe</h3><p>TRAIL defines no way to judge an action. An authority judges with its own tools, and acts through TRAIL: a gate before the action, a policy as it happens, a hold afterwards. It sees content only through disclosures its grant covers.</p></li>
+  </ul>
+</section>
+
+<section id="draftchanges">
+  <h2>Where the page and the draft differ</h2>
+  <p>Section numbers refer to <span class="mono">draft-nassar-agentproto-trail</span>.</p>
+  <div class="tablewrap"><table class="track">
+    <thead><tr><th>Topic</th><th>In the revised draft</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td>Sandbox</td><td>Added to §1.7</td><td>Done in the revised draft</td></tr>
+      <tr><td>Cell, edge</td><td>Redefined in §1.7: everything behind one edge; where traffic leaves the cell</td><td>Done</td></tr>
+      <tr><td>Attestation levels</td><td>§2.1 table: where the edge is, what the cell is, who can read the key, what goes around it</td><td>Done</td></tr>
+      <tr><td>Authorities and witnesses</td><td>§2.2 added; a witness acts only through require-witness</td><td>Done</td></tr>
+      <tr><td>Directed records, grants, admission issuer</td><td>Added to §1.7</td><td>Done</td></tr>
+      <tr><td>How directives act</td><td>§9.2 table: immediate, per action, or when state goes stale</td><td>Done</td></tr>
+      <tr><td>Gate on every action</td><td>§10.1: everything waits, and stops if the approver is unreachable</td><td>Done</td></tr>
+      <tr><td>Disclosure outside a grant</td><td>§10.3: refused and recorded</td><td>Done</td></tr>
+      <tr><td>Who can read trails</td><td>§12.2: authorized parties only; §6.2 fixed</td><td>Done; who runs the authorization server is an open issue</td></tr>
+      <tr><td>Verifier</td><td>§11.4 unchanged: the edge carries the Attestation Result</td><td>Open issue: whether verifiers also publish</td></tr>
+      <tr><td>Requiring a sender’s grants</td><td>Not specified</td><td>Open issue</td></tr>
+      <tr><td>Killswitch, A1/B1 numbering</td><td>Page only</td><td>The draft keeps <em>hold</em></td></tr>
+      <tr><td>Scenario additions</td><td>Appendix D proposals</td><td>Open issue: which to specify</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<footer>
+  <p>Kareem Nassar, Suhas Nandakumar, and Cullen Jennings. Revises Suhas Nandakumar’s earlier TRAIL draft.</p>
+</footer>
+</main>
+<script>
+(() => {
+  /* ---------- one color per kind of thing, used in every scene ---------- */
+  const BG = "#14171C", INK = "#E8ECF1", DIM = "#8A9099", FAINT = "#2A3038";
+  const AGENT = "#7AA2F7";   // the AI agent (model + tools)
+  const EDGE = "#FF9E64";    // TRAIL edge
+  const CELL = "#9ECE6A";    // a cell: one machine
+  const PLANE = "#7DCFFF";   // evidence plane
+  const AUTH = "#BB9AF7";    // an authority
+  const WIT = "#73DACA";     // a witness
+  const REC = "#E0C46C";     // an Action Record
+  const OK = "#9ECE6A", BAD = "#F7768E", WARN = "#E0AF68";
+  const TOOL = "#A9B1D6";
+
+  const U = 75, W = 900, H = 600;
+  const X = x => W / 2 + x * U, Y = y => H / 2 - y * U;
+  const clamp = v => Math.max(0, Math.min(1, v));
+  const smooth = v => v * v * (3 - 2 * v);
+  const P = (t, a, b) => smooth(clamp((t - a) / (b - a)));
+  const lin = (t, a, b) => clamp((t - a) / (b - a));
+  const mix = (a, b, k) => a + (b - a) * k;
+  const FONT = '"IBM Plex Sans", system-ui, sans-serif';
+  const MONO = '"IBM Plex Mono", ui-monospace, Menlo, monospace';
+  const FS = 1.3;
+
+  /* ---------- primitives ---------- */
+  function rr(c, x, y, w, h, r) {
+    c.beginPath(); c.moveTo(x + r, y); c.lineTo(x + w - r, y); c.quadraticCurveTo(x + w, y, x + w, y + r);
+    c.lineTo(x + w, y + h - r); c.quadraticCurveTo(x + w, y + h, x + w - r, y + h); c.lineTo(x + r, y + h);
+    c.quadraticCurveTo(x, y + h, x, y + h - r); c.lineTo(x, y + r); c.quadraticCurveTo(x, y, x + r, y); c.closePath();
+  }
+  function text(c, s, x, y, size, color, weight = 400, alpha = 1, align = "center", font = FONT) {
+    if (alpha <= 0) return;
+    c.save(); c.globalAlpha *= alpha; c.fillStyle = color; c.font = `${weight} ${size * FS}px ${font}`;
+    c.textAlign = align; c.textBaseline = "middle"; c.fillText(s, X(x), Y(y)); c.restore();
+  }
+  // draft terms are always yellow mono
+  const term = (c, s, x, y, a, align = "center", size = 11) => text(c, s, x, y, size, REC, 500, a, align, MONO);
+  function box(c, o, k) {
+    if (k <= 0) return;
+    const { x, y, w, h, color, label, sub, role, size = 16, dash = false, fill = 0.1 } = o;
+    const px = X(x - w / 2), py = Y(y + h / 2), pw = w * U, ph = h * U, per = 2 * (pw + ph);
+    const solid = o.solid;
+    c.save(); rr(c, px, py, pw, ph, 8);
+    if (solid) { c.globalAlpha = clamp(k * 2 - 1); c.fillStyle = BG; c.fill(); }
+    c.globalAlpha = clamp(k * 2 - 1) * (solid ? 0.25 : fill); c.fillStyle = color; c.fill(); c.globalAlpha = 1;
+    c.setLineDash(dash ? [7, 6] : [per * clamp(k * 1.4), per]); c.lineWidth = 2.5; c.strokeStyle = color; c.stroke(); c.restore();
+    const ta = clamp(k * 2 - 1);
+    if (role) { text(c, label, x, y + h * 0.16, size, INK, 600, ta); term(c, role, x, y - h * 0.24, ta); }
+    else if (sub) { text(c, label, x, y + h * 0.17, size, INK, 600, ta); text(c, sub, x, y - h * 0.24, size * 0.68, DIM, 400, ta); }
+    else if (label) text(c, label, x, y, size, INK, 600, ta);
+  }
+  // a named party with its draft role underneath, e.g. "Regulator R" / authority
+  const party = (c, x, y, name, role, color, k, w = 3.0, h = 0.72, size = 15) => box(c, { x, y, w, h, color, label: name, role, size }, k);
+  function line(c, x1, y1, x2, y2, color, w = 2, k = 1, dash = null, alpha = 1) {
+    if (k <= 0) return;
+    c.save(); c.globalAlpha *= alpha; c.strokeStyle = color; c.lineWidth = w; if (dash) c.setLineDash(dash);
+    c.beginPath(); c.moveTo(X(x1), Y(y1)); c.lineTo(X(mix(x1, x2, k)), Y(mix(y1, y2, k))); c.stroke(); c.restore();
+  }
+  function dot(c, x, y, r, color, a = 1) {
+    if (a <= 0) return;
+    c.save(); c.globalAlpha *= a; c.beginPath(); c.arc(X(x), Y(y), r * U, 0, 7); c.fillStyle = color; c.fill(); c.restore();
+  }
+  // seal: a small ring that stands for a signature. Red when broken.
+  function seal(c, x, y, a = 1, broken = false, r = 0.07) {
+    if (a <= 0) return;
+    c.save(); c.globalAlpha *= a; c.strokeStyle = broken ? BAD : BG; c.lineWidth = 2;
+    c.beginPath(); c.arc(X(x), Y(y), r * U, 0, 7); c.stroke();
+    if (broken) { c.beginPath(); c.moveTo(X(x - r), Y(y - r)); c.lineTo(X(x + r), Y(y + r)); c.stroke(); }
+    c.restore();
+  }
+  // a tag; records (REC color) carry a seal at their right end
+  function tag(c, s, x, y, color, k = 1, scale = 1, broken = false) {
+    if (k <= 0) return;
+    const sealed = color === REC;
+    c.save(); c.font = `700 ${13 * scale * FS}px ${FONT}`;
+    const tw = c.measureText(s).width + (sealed ? 26 : 14) * scale, th = 22 * scale * FS * k;
+    rr(c, X(x) - tw * k / 2, Y(y) - th / 2, tw * k, th, 5); c.fillStyle = broken ? "#5A3038" : color; c.fill(); c.restore();
+    if (k > 0.6) {
+      const a = clamp((k - 0.6) / 0.4), off = sealed ? -0.08 * scale : 0;
+      text(c, s, x + off, y, 13 * scale * k, broken ? BAD : BG, 700, a);
+      if (sealed) seal(c, x + (tw / 2) / U - 0.13 * scale, y, a, broken, 0.06 * scale);
+    }
+  }
+  function xmark(c, x, y, a = 1, s = 10) {
+    if (a <= 0) return;
+    c.save(); c.globalAlpha *= a; c.strokeStyle = BAD; c.lineWidth = 4;
+    c.beginPath(); c.moveTo(X(x) - s, Y(y) - s); c.lineTo(X(x) + s, Y(y) + s);
+    c.moveTo(X(x) + s, Y(y) - s); c.lineTo(X(x) - s, Y(y) + s); c.stroke(); c.restore();
+  }
+  const check = (c, x, y, a = 1) => text(c, "✓", x, y, 20, OK, 700, a);
+  function person(c, x, y, color, a = 1, label = null) {
+    if (a <= 0) return;
+    c.save(); c.globalAlpha *= a; c.strokeStyle = color; c.lineWidth = 2.5;
+    c.beginPath(); c.arc(X(x), Y(y + 0.22), 0.13 * U, 0, 7); c.stroke();
+    c.beginPath(); c.moveTo(X(x - 0.24), Y(y - 0.3)); c.quadraticCurveTo(X(x), Y(y + 0.18), X(x + 0.24), Y(y - 0.3)); c.stroke(); c.restore();
+    if (label) text(c, label, x, y - 0.5, 13, DIM, 500, a);
+  }
+  function operator(c, x1, y1, x2, y2, label, k) {
+    if (k <= 0) return;
+    c.save(); c.globalAlpha = k; c.setLineDash([6, 6]); c.strokeStyle = "#5A6370"; c.lineWidth = 1.5;
+    rr(c, X(x1), Y(y2), (x2 - x1) * U, (y2 - y1) * U, 10); c.stroke(); c.restore();
+    text(c, label, x1 + 0.15, y2 - 0.2, 13, DIM, 600, k, "left");
+  }
+  function plane(c, x1, x2, y, label, k, color = PLANE) {
+    if (k <= 0) return;
+    c.save(); c.globalAlpha = k; rr(c, X(x1), Y(y + 0.22), (x2 - x1) * U, 0.44 * U, 8);
+    c.fillStyle = color; c.globalAlpha = k * 0.12; c.fill(); c.globalAlpha = k; c.strokeStyle = color; c.lineWidth = 2; c.stroke(); c.restore();
+    text(c, label, (x1 + x2) / 2, y, 14, color, 600, k);
+  }
+  function missing(c, x, y, w, h, label, k) {
+    box(c, { x, y, w, h, color: BAD, label, size: 13, dash: true, fill: 0.06 }, k);
+    text(c, "not in draft yet", x, y - h / 2 - 0.18, 11, BAD, 700, k);
+  }
+
+  /* A trail: linked squares (records) ending in a checkpoint square.
+     fills[i] in 0..1 shows record i; cp in 0..1 shows the checkpoint seal; cos in 0..1 shows a witness cosignature. */
+  function trail(c, x, y, n, s, fills, a, o = {}) {
+    if (a <= 0) return [];
+    const g = 0.07, tw = n * s + (n - 1) * g, x0 = x - tw / 2, pts = [];
+    text(c, o.label || "trail", x0 - 0.12, y, o.small ? 10 : 12, DIM, 500, a, "right");
+    for (let i = 0; i < n; i++) {
+      const cx = x0 + i * (s + g) + s / 2, isCp = o.cp !== undefined && i === n - 1;
+      pts.push([cx, y]);
+      c.save(); c.globalAlpha = a;
+      if (i > 0) { c.strokeStyle = DIM; c.lineWidth = 1.5; c.beginPath(); c.moveTo(X(cx - s / 2 - g), Y(y)); c.lineTo(X(cx - s / 2), Y(y)); c.stroke(); }
+      c.strokeStyle = isCp ? INK : DIM; c.lineWidth = 1.5; c.strokeRect(X(cx - s / 2), Y(y + s / 2), s * U, s * U);
+      const f = isCp ? o.cp : fills[i] || 0;
+      const bad = o.bad && o.bad[i];
+      if (f > 0) { c.globalAlpha = a * f; c.fillStyle = bad ? BAD : isCp ? INK : REC; c.fillRect(X(cx - s / 2) + 2, Y(y + s / 2) + 2, s * U - 4, s * U - 4); }
+      c.restore();
+      if (isCp && o.cp > 0) seal(c, cx, y, a * o.cp, false, s * 0.28);
+    }
+    if (o.cos > 0) { const [cx] = pts[n - 1]; text(c, "✓", cx, y + s * 0.95, o.small ? 11 : 13, WIT, 700, a * o.cos); }
+    return pts;
+  }
+
+  /* A cell: one machine. Rows: label, agent, edge (with its form and level), trail. */
+  function cell(c, o, k) {
+    const { x, y, w = 3.4, h = 2.6, label = "Cell A", agent = "Agent A", agentSub = "model + tools",
+      edge = "Edge A", level = "DPU · isolated", agentColor = AGENT, edgeColor = EDGE, showTrail = true, fills = [],
+      small = false, cp = undefined, cos = 0, bad = null } = o;
+    const top = y + h / 2, iw = w - 0.4;
+    const ay = top - (small ? 0.62 : 0.78), ey = ay - (small ? 0.62 : 0.78), ly = ey - (small ? 0.52 : 0.6);
+    if (k > 0) {
+      c.save(); rr(c, X(x - w / 2), Y(top), w * U, h * U, 12);
+      c.globalAlpha = clamp(k * 2 - 1) * 0.05; c.fillStyle = CELL; c.fill(); c.globalAlpha = 1;
+      const per = 2 * (w + h) * U; c.setLineDash([per * clamp(k * 1.4), per]); c.strokeStyle = CELL; c.lineWidth = 2; c.stroke(); c.restore();
+      text(c, label, x - w / 2 + 0.15, top - 0.2, small ? 11 : 13, CELL, 600, clamp(k * 2 - 1), "left");
+    }
+    const bh = small ? 0.5 : 0.6;
+    box(c, { x, y: ay, w: iw, h: bh, color: agentColor, label: agent, sub: small ? null : agentSub, size: small ? 13 : 16 }, k);
+    if (small) box(c, { x, y: ey, w: iw, h: bh, color: edgeColor, label: level ? `${edge} · ${level.split(" · ")[0]}` : edge, size: 13 }, k);
+    else box(c, { x, y: ey, w: iw, h: bh, color: edgeColor, label: edge, sub: level, size: 16 }, k);
+    let pts = [];
+    if (showTrail) pts = trail(c, x + 0.25, ly, small ? 5 : 6, small ? 0.22 : 0.27, fills, clamp(k * 2 - 1), { small, cp, cos, bad });
+    return { x, top, bottom: y - h / 2, left: x - w / 2, right: x + w / 2, ay, ey, ly, iw, edgeL: x - iw / 2, edgeR: x + iw / 2, pts };
+  }
+  // a call or record moving from a to b; a label makes it carry a record tag
+  function move(c, t, t0, t1, a, b, color = INK, label = null) {
+    const m = lin(t, t0, t1); if (m <= 0 || m >= 1) return;
+    const x = mix(a[0], b[0], m), y = mix(a[1], b[1], m);
+    if (label) { dot(c, x, y, 0.08, color); tag(c, label, x, y + 0.28, REC, 1, 0.8); }
+    else dot(c, x, y, 0.1, color);
+  }
+  // a record tag alone moving from a to b
+  function sendRec(c, t, t0, t1, a, b, label, scale = 0.75) {
+    const m = lin(t, t0, t1); if (m <= 0 || m >= 1) return;
+    tag(c, label, mix(a[0], b[0], m), mix(a[1], b[1], m), REC, 1, scale);
+  }
+  function title(c, s) { text(c, s, -5.6, 3.5, 22, INK, 700, 1, "left"); }
+  function captions(c, t, list) {
+    for (let i = 0; i < list.length; i++) {
+      const [t0, s, col] = list[i], t1 = i + 1 < list.length ? list[i + 1][0] : 1e9;
+      const a = P(t, t0, t0 + 0.35) * (1 - P(t, t1, t1 + 0.35));
+      text(c, s, 0, -3.42, 17, col || INK, 400, a);
+    }
+  }
+  const every = (a, b, step) => { const r = []; for (let x = a; x < b; x += step) r.push(x); return r; };
+  const ramp = (t, starts, d = 0.3) => starts.map(s => P(t, s, s + d));
+
+  /* =====================================================================
+     HOW IT WORKS
+     ===================================================================== */
+
+  /* ---------- nesting: machine ⊃ (cell ⊃ sandbox ⊃ agent), edge on the cell boundary ---------- */
+  const HOST = "#5A6370", SANDBOX = "#4E6A9E";
+  function frame(c, x, y, w, h, color, k, o = {}) {
+    if (k <= 0) return;
+    const { dash = null, lw = 2, fill = 0, label = null, labelColor = color, labelAt = "tl", size = 12 } = o;
+    c.save(); rr(c, X(x - w / 2), Y(y + h / 2), w * U, h * U, 10);
+    if (fill) { c.globalAlpha = k * fill; c.fillStyle = color; c.fill(); }
+    c.globalAlpha = k; c.strokeStyle = color; c.lineWidth = lw;
+    if (dash) c.setLineDash(dash); else { const per = 2 * (w + h) * U; c.setLineDash([per * clamp(k * 1.4), per]); }
+    c.stroke(); c.restore();
+    if (label) {
+      const lx = labelAt.includes("r") ? x + w / 2 - 0.12 : x - w / 2 + 0.12;
+      const ly = labelAt.includes("b") ? y - h / 2 + 0.18 : y + h / 2 - 0.18;
+      text(c, label, lx, ly, size, labelColor, 600, clamp(k * 2 - 1), labelAt.includes("r") ? "right" : "left");
+    }
+  }
+  // the edge: a box on the cell boundary, with its form, and an attestation-level badge
+  function edgeBox(c, x, y, name, form, level, k, w = 1.6, h = 0.78) {
+    box(c, { x, y, w, h, color: EDGE, label: name, sub: form, size: 14, solid: true }, k);
+    if (level) tag(c, level, x + w / 2 - 0.05, y + h / 2 + 0.02, WIT, k, 0.7);
+  }
+  // a yellow draft term placed right after a piece of text
+  function termAfter(c, label, tm, x, y, size, a) {
+    c.save(); c.font = `600 ${size * FS}px ${FONT}`; const w = c.measureText(label).width / U; c.restore();
+    term(c, tm, x + w + 0.12, y, a, "left");
+  }
+  // the evidence plane: one shared place with a slot per publisher
+  function evidencePlane(c, k) {
+    if (k <= 0) return;
+    c.save(); c.globalAlpha = k; rr(c, X(-5.75), Y(-0.7), 11.5 * U, 1.3 * U, 10);
+    c.fillStyle = PLANE; c.globalAlpha = k * 0.08; c.fill(); c.globalAlpha = k; c.strokeStyle = PLANE; c.lineWidth = 2; c.stroke(); c.restore();
+    text(c, "evidence plane", -5.6, -0.88, 12, PLANE, 700, k, "left");
+    termAfter(c, "evidence plane", "evidence plane", -5.6, -0.88, 12, 0);
+    text(c, "MoQ or HTTP: each party publishes its trail and state; authorized parties read", -3.35, -0.88, 11, DIM, 500, k, "left");
+    [["R's state", -4.3, AUTH], ["A's trail", -1.45, REC], ["B's trail", 2.0, REC], ["N's cosignatures", 4.55, WIT]].forEach(([n, x, col]) => {
+      text(c, n, x, -1.13, 10, col, 600, k);
+      c.save(); c.globalAlpha = k; rr(c, X(x - 1.1), Y(-1.26), 2.2 * U, 0.48 * U, 6); c.strokeStyle = col; c.lineWidth = 1.5; c.setLineDash([4, 3]); c.stroke(); c.restore();
+    });
+  }
+  // a chip that moves along a list of waypoints between t0 and t1
+  function travel(c, t, t0, t1, pts, label, color, scale = 0.7) {
+    const m = lin(t, t0, t1); if (m <= 0 || m >= 1) return;
+    const segs = pts.length - 1, f = m * segs, i = Math.min(segs - 1, Math.floor(f)), r = f - i;
+    tag(c, label, mix(pts[i][0], pts[i + 1][0], r), mix(pts[i][1], pts[i + 1][1], r), color, 1, scale);
+  }
+  // a chip resting at a point from time t0 on
+  const rest = (c, t, t0, p, label, color, scale = 0.62, until = 1e9) => tag(c, label, p[0], p[1], color, P(t, t0, t0 + 0.2) * (1 - P(t, until, until + 0.2)), scale);
+
+  /* A. The pieces and their names */
+  const keyTerms = (() => {
+    const AX = -1.45, BX = 2.0, EY = 1.5;                 // edge positions
+    const SL = { R: [-4.3, -1.5], A: [AX, -1.5], B: [BX, -1.5], N: [4.55, -1.5] };
+    const PIN = { AR: [AX - 0.5, 2.13], AN: [AX + 0.5, 2.13], BR: [BX - 0.45, 2.13], BN: [BX + 0.45, 2.13] };
+    // squares inside a trail slot; kinds: "r" record, "cp" checkpoint
+    function slotTrail(c, [x, y], items, a) {
+      const n = 6, s = 0.24, g = 0.07, x0 = x - (n * s + (n - 1) * g) / 2;
+      for (let i = 0; i < n; i++) {
+        const cx = x0 + i * (s + g) + s / 2, it = items[i];
+        c.save(); c.globalAlpha = a;
+        if (i) { c.strokeStyle = DIM; c.lineWidth = 1.2; c.beginPath(); c.moveTo(X(cx - s / 2 - g), Y(y)); c.lineTo(X(cx - s / 2), Y(y)); c.stroke(); }
+        c.strokeStyle = DIM; c.lineWidth = 1.2; c.strokeRect(X(cx - s / 2), Y(y + s / 2), s * U, s * U);
+        if (it && it[1] > 0) { c.globalAlpha = a * it[1]; c.fillStyle = it[0] === "cp" ? INK : REC; c.fillRect(X(cx - s / 2) + 2, Y(y + s / 2) + 2, s * U - 4, s * U - 4); }
+        c.restore();
+        if (it && it[0] === "cp" && it[1] > 0) seal(c, cx, y, a * it[1], false, 0.07);
+      }
+    }
+    const pulse = (t, t0) => 1 + 0.35 * Math.sin(Math.PI * lin(t, t0, t0 + 0.5));
+    return {
+      dur: 22,
+      draw(c, t) {
+        title(c, "The pieces and their names");
+        const kx = P(t, 0, 1.2), ke = P(t, 2.8, 3.6), ky = P(t, 4.2, 5.2), kp = P(t, 5.8, 6.6);
+        // ---------- Operator X: the edge is a DPU on the NIC, so the whole machine is the cell
+        operator(c, -5.9, -0.32, -0.25, 3.25, "", kx);
+        text(c, "Operator X", -5.75, 3.08, 12, DIM, 600, kx, "left"); termAfter(c, "Operator X", "operator", -5.75, 3.08, 12, P(t, 1.0, 1.4));
+        frame(c, -3.15, 1.5, 3.4, 2.8, HOST, kx, {});
+        frame(c, -3.15, 1.5, 3.4, 2.8, CELL, ke, { lw: 2.5 });
+        text(c, ke > 0.5 ? "Machine A = Cell A" : "Machine A", -4.72, 2.7, 12, ke > 0.5 ? CELL : DIM, 600, kx, "left");
+        if (ke > 0.5) termAfter(c, "Machine A = Cell A", "cell", -4.72, 2.7, 12, ke);
+        text(c, "host OS", -4.72, 0.3, 11, DIM, 500, kx, "left");
+        frame(c, -3.5, 1.55, 2.3, 1.5, SANDBOX, P(t, 0.4, 1.4), { dash: [5, 4], label: "sandbox", labelColor: "#8FA6D6", size: 11 });
+        box(c, { x: -3.5, y: 1.38, w: 1.9, h: 0.78, color: AGENT, label: "Agent A", role: "agent", size: 16 }, P(t, 0.6, 1.6));
+        person(c, -5.3, 1.75, INK, P(t, 1.6, 2.0), "person");
+        line(c, -5.02, 1.85, -4.45, 1.5, DIM, 1.5, P(t, 1.8, 2.2), [4, 4]);
+        term(c, "principal", -5.3, 0.95, P(t, 2.0, 2.4));
+        box(c, { x: AX, y: EY, w: 1.8, h: 0.8, color: EDGE, label: "Edge A", role: "edge", size: 16, solid: true }, ke);
+        tag(c, "DPU · isolated", AX, 0.82, WIT, P(t, 3.4, 3.8), 0.8);
+        term(c, "attestation level", AX, 0.48, P(t, 3.6, 4.0));
+        // ---------- Operator Y: the edge is a sidecar, so the cell is just the sandbox and edge
+        operator(c, 0.25, -0.32, 5.9, 3.25, "", ky);
+        text(c, "Operator Y", 0.4, 3.08, 12, DIM, 600, ky, "left");
+        frame(c, 3.08, 1.5, 5.25, 2.8, HOST, ky, { label: "Machine B", labelColor: DIM, size: 12 });
+        text(c, "host OS (outside Cell B)", 0.6, 0.3, 11, DIM, 500, ky, "left");
+        frame(c, 3.3, 1.55, 4.35, 2.0, CELL, ky, { lw: 2.5, label: "Cell B", labelColor: CELL, labelAt: "tr", size: 12 });
+        frame(c, 4.2, 1.5, 2.25, 1.45, SANDBOX, ky, { dash: [5, 4], label: "sandbox", labelColor: "#8FA6D6", size: 11 });
+        box(c, { x: 4.2, y: 1.35, w: 1.85, h: 0.78, color: AGENT, label: "Agent B", role: "agent", size: 16 }, ky);
+        box(c, { x: BX, y: EY, w: 1.6, h: 0.8, color: EDGE, label: "Edge B", role: "edge", size: 16, solid: true }, ky);
+        tag(c, "sidecar · software", BX, 0.82, WIT, ky, 0.8);
+        line(c, -0.55, EY, 1.2, EY, DIM, 2, ky);
+        text(c, "calls", 0.33, EY + 0.25, 11, DIM, 600, ky);
+
+        // ---------- evidence plane, Regulator R, Notary N
+        evidencePlane(c, kp);
+        termAfter(c, "A's trail", "trail", AX - 0.33, -1.13, 10, P(t, 6.4, 6.8));
+        line(c, AX, 1.1, AX, -0.7, PLANE, 1.5, kp); line(c, BX, 1.1, BX, -0.7, PLANE, 1.5, kp);
+        party(c, -4.3, -2.58, "Regulator R", "authority", AUTH, kp, 2.8, 0.62, 14);
+        line(c, -4.3, -2.0, -4.3, -2.27, AUTH, 1.5, kp);
+        party(c, 4.55, -2.58, "Notary N", "witness", WIT, kp, 2.6, 0.62, 14);
+        line(c, 4.55, -2.0, 4.55, -2.27, WIT, 1.5, kp);
+        slotTrail(c, SL.A, [["r", 1], ["r", 1], ["r", 1], ["cp", P(t, 9.9, 10.1)], ["r", P(t, 15.2, 15.4)]], kp);
+        slotTrail(c, SL.B, [["r", P(t, 18.6, 18.8)]], kp);
+        text(c, "earlier records", AX, -1.83, 9, DIM, 500, kp * (1 - P(t, 9.2, 9.5)));
+
+        // R posts its state; both edges pick it up and keep it pinned
+        travel(c, t, 7.0, 7.5, [[-4.3, -2.27], SL.R], "state #42", AUTH, 0.6);
+        rest(c, t, 7.5, SL.R, "state #42", AUTH, 0.55);
+        travel(c, t, 7.9, 8.8, [SL.R, [-4.3, -0.9], [AX, -0.9], [AX, 1.1], PIN.AR], "R #42", AUTH, 0.55);
+        travel(c, t, 7.9, 8.8, [SL.R, [-4.3, -0.9], [BX, -0.9], [BX, 1.1], PIN.BR], "R #42", AUTH, 0.55);
+        const pinA = P(t, 8.8, 9.0), pinN = P(t, 12.9, 13.1);
+        tag(c, "R #42", PIN.AR[0], PIN.AR[1], AUTH, pinA, 0.55 * pulse(t, 13.6));
+        tag(c, "R #42", PIN.BR[0], PIN.BR[1], AUTH, pinA, 0.55 * pulse(t, 17.6));
+
+        // Edge A posts a checkpoint; N reads the trail and cosigns; both edges pick it up
+        travel(c, t, 9.4, 9.9, [[AX, 1.1], SL.A], "CP", INK, 0.6);
+        travel(c, t, 10.3, 11.3, [SL.A, [AX, -1.88], [4.55, -1.88], [4.55, -2.27]], "A's trail to CP", REC, 0.5);
+        travel(c, t, 11.5, 11.9, [[4.55, -2.27], SL.N], "✓ A's CP", WIT, 0.6);
+        rest(c, t, 11.9, SL.N, "✓ A's CP", WIT, 0.6);
+        travel(c, t, 12.1, 12.9, [SL.N, [4.55, -0.9], [AX, -0.9], [AX, 1.1], PIN.AN], "✓ N", WIT, 0.55);
+        travel(c, t, 12.1, 12.9, [SL.N, [4.55, -0.9], [BX + 0.3, -0.9], [BX + 0.3, 1.1], PIN.BN], "✓ N: A", WIT, 0.55);
+        tag(c, "✓ N", PIN.AN[0], PIN.AN[1], WIT, pinN, 0.55);
+        tag(c, "✓ N: A", PIN.BN[0], PIN.BN[1], WIT, pinN, 0.55 * pulse(t, 17.1));
+
+        // the call
+        move(c, t, 13.4, 13.9, [-2.55, 1.38], [-2.35, EY]);
+        rest(c, t, 14.2, [AX, EY + 0.62 + 0.0], "A4", REC, 0.7, 14.6);
+        travel(c, t, 14.6, 15.2, [[AX, 1.1], SL.A], "A4", REC, 0.6);
+        move(c, t, 15.6, 16.7, [-0.55, EY], [1.2, EY], INK, "A4");
+        term(c, "Action", 0.0, 1.18, P(t, 14.3, 14.7)); term(c, "Record", 0.0, 0.98, P(t, 14.3, 14.7));
+        check(c, 1.0, 1.95, P(t, 17.8, 18.0));
+        rest(c, t, 18.1, [BX, EY - 0.62], "B1 cites A4", REC, 0.6, 18.4);
+        travel(c, t, 18.4, 18.6, [[BX, 1.1], SL.B], "B1", REC, 0.6);
+        move(c, t, 18.9, 19.4, [2.8, EY], [3.28, 1.4]);
+
+        captions(c, t, [
+          [0.6, "Operator X runs Agent A in a sandbox on Machine A"],
+          [1.6, "Agent A acts for a person, its principal"],
+          [2.8, "Edge A is where traffic leaves the cell: here, a DPU on the NIC"],
+          [4.2, "At Operator Y, Edge B is a process beside the sandbox: a weaker level"],
+          [5.8, "The evidence plane is where parties publish and read trails and state"],
+          [7.0, "Regulator R (an authority) publishes its state: rules and holds"],
+          [7.9, "Each edge reads R's state and enforces it"],
+          [9.4, "Edge A closes off its trail so far with a signed checkpoint"],
+          [10.3, "Notary N (a witness) checks it has every record up to it"],
+          [11.5, "N cosigns the checkpoint. Both edges read the cosignature"],
+          [12.9, "Edge A needs it to keep acting; Edge B needs it to trust A"],
+          [13.4, "Agent A makes a call. Edge A checks it against R's rules"],
+          [14.2, "Edge A signs an Action Record (A4) and writes it to its trail first"],
+          [15.6, "Then the call goes to Edge B, carrying A4"],
+          [16.9, "Edge B checks A4's signature, N's cosignature, and R's rules"],
+          [18.1, "Edge B records B1, citing A4, then delivers the call"],
+          [19.7, "Calls go edge to edge. Trails, state, and cosignatures go via the plane"],
+        ]);
+      }
+    };
+  })();
+
+  /* =====================================================================
+     SHARED LAYOUT: the same pieces as the first animation
+     ===================================================================== */
+  const FORM = { isolated: "DPU", tee: "conf. VM", software: "sidecar" };
+  const PY = { top: -0.7, bot: -2.0, lab: -1.13, box: -1.5, party: -2.58 };
+
+  function opBox(c, x1, y1, x2, y2, label, k, sub = null) {
+    if (k <= 0) return;
+    c.save(); c.globalAlpha = k; c.setLineDash([6, 6]); c.strokeStyle = "#5A6370"; c.lineWidth = 1.5;
+    rr(c, X(x1), Y(y2), (x2 - x1) * U, (y2 - y1) * U, 10); c.stroke(); c.restore();
+    text(c, label, x1 + 0.15, y2 - 0.18, 12, DIM, 600, k, "left");
+    if (sub) text(c, sub, x1 + 0.15, y2 - 0.42, 10, DIM, 500, k, "left");
+  }
+
+  /* A machine with a sandbox (holding the agent) and an edge. The cell boundary depends on the level:
+     isolated: the edge is on the machine wall, and the whole machine is the cell;
+     tee / software: the edge is inside the machine, and the cell is the sandbox plus the edge. */
+  function mach(c, o, k) {
+    const { x, y, w, h, name, level = "isolated", side = "right", s = 1, agent, agentColor = AGENT, edgeName,
+      noEdge = false, monitor = null, kc = k, tagOn = true, title = null, hostOn = true } = o;
+    const horiz = side === "right" || side === "left", dir = side === "left" || side === "bottom" ? -1 : 1;
+    const ew = (horiz ? 1.7 : 1.9) * s * (tagOn ? 1 : 1.6), eh = 0.8 * s, ag = agent || `Agent ${name}`, en = edgeName || `Edge ${name}`;
+    let ex, ey, sx, sy, sw, sh;
+    if (horiz) {
+      ey = y + 0.05 * s;
+      ex = noEdge ? x + dir * (w / 2 - ew / 2 - 0.25 * s) : level === "isolated" ? x + dir * w / 2 : x + dir * (w / 2 - ew / 2 - 0.3 * s);
+      const far = x - dir * (w / 2 - 0.22 * s), near = ex - dir * (ew / 2 + 0.16 * s);
+      sw = Math.min(Math.abs(near - far), 2.6 * s); sx = far + dir * sw / 2;
+      sh = Math.min(h - 0.95 * s, 1.5 * s); sy = y + 0.1 * s;
+    } else {
+      ex = x;
+      ey = level === "isolated" ? y + dir * h / 2 : y + dir * (h / 2 - eh / 2 - 0.62 * s);
+      const far = y - dir * (h / 2 - 0.3 * s), near = ey - dir * (eh / 2 + (dir < 0 ? 0.16 : 0.5) * s);
+      sh = Math.min(Math.abs(near - far), 1.5 * s); sy = far + dir * sh / 2;
+      sw = Math.min(w - 0.5 * s, 2.6 * s); sx = x;
+    }
+    frame(c, x, y, w, h, HOST, k, {});
+    let cellBox = null;
+    if (!noEdge) {
+      if (level === "isolated") frame(c, x, y, w, h, CELL, kc, { lw: 2.5 });
+      else {
+        const pad = 0.16 * s, tagH = tagOn ? 0.42 * s : 0;
+        const x1 = Math.min(sx - sw / 2, ex - ew / 2) - pad, x2 = Math.max(sx + sw / 2, ex + ew / 2) + pad;
+        const y2 = Math.max(sy + sh / 2, ey + eh / 2) + 0.32 * s, y1 = Math.min(sy - sh / 2, ey - eh / 2 - tagH) - pad;
+        cellBox = [x1, y1, x2, y2];
+        frame(c, (x1 + x2) / 2, (y1 + y2) / 2, x2 - x1, y2 - y1, CELL, kc, { lw: 2.5 });
+        const lbl = level === "tee" && s >= 0.8 ? `Cell ${name} = conf. VM` : `Cell ${name}`;
+        const lx = horiz ? (dir > 0 ? x1 + 0.12 : x2 - 0.12) : x2 - 0.12;
+        text(c, lbl, lx, y2 - 0.17 * s - 0.02, 11 * Math.max(s, 0.8), CELL, 600, clamp(kc * 2 - 1), horiz && dir > 0 ? "left" : "right");
+      }
+    }
+    const ml = level === "isolated" && !noEdge ? (title || `Machine ${name} = Cell ${name}`) : (title || `Machine ${name}`);
+    if (s >= 0.6 || level === "isolated" || noEdge) text(c, ml, x - w / 2 + 0.12, side === "top" ? y - h / 2 + 0.17 * Math.max(s, 0.7) : y + h / 2 - 0.17 * Math.max(s, 0.7), 12 * Math.max(s, 0.75), level === "isolated" && !noEdge ? CELL : DIM, 600, clamp(k * 2 - 1), "left");
+    if (hostOn && s >= 0.6 && side !== "top") text(c, level === "isolated" || noEdge || s < 0.8 ? "host OS" : `host OS (outside Cell ${name})`, x - w / 2 + 0.12, y - h / 2 + 0.17 * s, 10 * Math.max(s, 0.8), DIM, 500, clamp(k * 2 - 1), "left");
+    frame(c, sx, sy, sw, sh, SANDBOX, k, { dash: [5, 4], label: s >= 0.6 ? "sandbox" : null, labelColor: "#8FA6D6", size: 10 * Math.max(s, 0.8) });
+    const aw = Math.min(sw - 0.3 * s, 1.9 * s), ah = 0.74 * s, ay = sy - (s >= 0.6 ? 0.1 * s : 0);
+    box(c, { x: sx, y: ay, w: aw, h: ah, color: agentColor, label: ag, role: s >= 0.8 ? "agent" : null, size: 16 * s }, k);
+    if (noEdge && monitor) box(c, { x: ex, y: ey, w: ew, h: eh, color: monitor.color || AUTH, label: monitor.label, size: 13 * s, solid: true }, k);
+    if (!noEdge) {
+      box(c, { x: ex, y: ey, w: ew, h: eh, color: EDGE, label: tagOn ? en : `${en} · ${FORM[level]}`, role: s >= 0.8 ? "edge" : null, size: 16 * s, solid: true }, kc);
+      if (tagOn) tag(c, `${FORM[level]} · ${level}`, ex, ey - eh / 2 - 0.2 * s, WIT, kc, 0.8 * Math.max(s, 0.7));
+    }
+    return { x, y, ex, ey, eL: ex - ew / 2, eR: ex + ew / 2, eT: ey + eh / 2, eB: ey - eh / 2 - (tagOn ? 0.42 * s : 0),
+      ax: sx, ay, aL: sx - aw / 2, aR: sx + aw / 2, aT: ay + ah / 2, aB: ay - ah / 2, top: y + h / 2, bot: y - h / 2,
+      pinL: [ex - ew / 4, ey + eh / 2 + 0.2 * s], pinR: [ex + ew / 4, ey + eh / 2 + 0.2 * s] };
+  }
+
+  /* The evidence plane: one bar, with a labeled box for each trail, state, or set of cosignatures it carries. */
+  function planeBar(c, k, entries, o = {}) {
+    if (k <= 0) return;
+    const { x1 = -5.75, x2 = 5.75, label = "evidence plane", desc = "MoQ or HTTP: each party publishes its trail and state; authorized parties read" } = o;
+    c.save(); c.globalAlpha = k; rr(c, X(x1), Y(PY.top), (x2 - x1) * U, (PY.top - PY.bot) * U, 10);
+    c.fillStyle = PLANE; c.globalAlpha = k * 0.08; c.fill(); c.globalAlpha = k; c.strokeStyle = PLANE; c.lineWidth = 2; c.stroke(); c.restore();
+    text(c, label, x1 + 0.15, -0.88, 12, PLANE, 700, k, "left");
+    if (desc) { c.save(); c.font = `700 ${12 * FS}px ${FONT}`; const lw = c.measureText(label).width / U; c.restore(); text(c, desc, x1 + 0.35 + lw, -0.88, 11, DIM, 500, k, "left"); }
+    entries.forEach(({ n, x, col, w = 2.2 }) => {
+      text(c, n, x, PY.lab, 10, col, 600, k);
+      c.save(); c.globalAlpha = k; rr(c, X(x - w / 2), Y(PY.box + 0.24), w * U, 0.48 * U, 6); c.strokeStyle = col; c.lineWidth = 1.5; c.setLineDash([4, 3]); c.stroke(); c.restore();
+    });
+  }
+  /* A trail drawn inside the evidence plane: items are [kind, fill] with kind "r" record, "cp" checkpoint; bad marks a changed record */
+  function ptrail(c, x, items, a, n = 6, bad = {}) {
+    const s = 0.24, g = 0.07, y = PY.box, x0 = x - (n * s + (n - 1) * g) / 2, pts = [];
+    for (let i = 0; i < n; i++) {
+      const cx = x0 + i * (s + g) + s / 2, it = items[i]; pts.push([cx, y]);
+      c.save(); c.globalAlpha = a;
+      if (i) { c.strokeStyle = DIM; c.lineWidth = 1.2; c.beginPath(); c.moveTo(X(cx - s / 2 - g), Y(y)); c.lineTo(X(cx - s / 2), Y(y)); c.stroke(); }
+      c.strokeStyle = bad[i] ? BAD : DIM; c.lineWidth = bad[i] ? 2 : 1.2; c.strokeRect(X(cx - s / 2), Y(y + s / 2), s * U, s * U);
+      if (it && it[1] > 0) { c.globalAlpha = a * it[1]; c.fillStyle = bad[i] ? BAD : it[0] === "cp" ? INK : REC; c.fillRect(X(cx - s / 2) + 2, Y(y + s / 2) + 2, s * U - 4, s * U - 4); }
+      c.restore();
+      if (it && it[0] === "cp" && it[1] > 0) seal(c, cx, y, a * it[1], false, 0.07);
+    }
+    return pts;
+  }
+  const recs = (n, f = 1) => Array.from({ length: n }, () => ["r", f]);
+  // a party below the evidence plane, with its connection to the plane
+  function below(c, x, name, role, color, k, w = 2.8) {
+    party(c, x, PY.party, name, role, color, k, w, 0.62, 14);
+    line(c, x, PY.bot, x, PY.party + 0.31, color, 1.5, k);
+  }
+  const link = (c, x, yTop, k, x2 = x) => line(c, x, yTop, x2, PY.top, PLANE, 1.5, k);
+  const pulse = (t, t0) => 1 + 0.35 * Math.sin(Math.PI * lin(t, t0, t0 + 0.5));
+  // a chip that appears at a point and stays
+  const pin = (c, label, p, color, a, scale = 0.55) => tag(c, label, p[0], p[1], color, a, scale);
+  // the call from an agent to its edge, then out
+  const toEdge = (c, t, t0, M, color = INK) => move(c, t, t0, t0 + 0.5, [M.aR > M.ex ? M.aL : M.aR, M.ay], [M.ex, M.ey], color);
+
+  const tamper = {
+    dur: 17,
+    draw(c, t) {
+      title(c, "What makes records tamper-evident");
+      const k = P(t, 0, 1.0);
+      opBox(c, -5.9, -0.32, -0.25, 3.25, "Operator X", k);
+      opBox(c, 0.25, -0.32, 5.9, 3.25, "Operator Y", k);
+      const A = mach(c, { x: -3.15, y: 1.5, w: 3.4, h: 2.8, name: "A" }, k);
+      const B = mach(c, { x: 3.08, y: 1.5, w: 5.25, h: 2.8, name: "B", level: "software", side: "left" }, k);
+      planeBar(c, k, [{ n: "A's trail", x: -2.2, col: REC, w: 3.2 }, { n: "B's trail", x: B.ex, col: REC }, { n: "N's cosignatures", x: 4.55, col: WIT }]);
+      link(c, A.ex, A.eB, k, -2.2); link(c, B.ex, B.eB, k);
+      below(c, 4.55, "Notary N", "witness", WIT, k, 2.6);
+      const editing = t > 2.6 && t < 6.4, deleting = t > 6.4 && t < 9.8;
+      const pts = ptrail(c, -2.2, [...recs(5), ["cp", 1]], k, 6, editing ? { 2: 1 } : deleting ? { 1: 1 } : {});
+      ["A1", "A2", "A3", "A4", "A5", "CP"].forEach((s, i) => text(c, s, pts[i][0], PY.box - 0.36, 9, DIM, 600, k));
+      ptrail(c, B.ex, [["r", 1]], k);
+      text(c, "B1 cites A3's hash", B.ex, PY.box - 0.36, 9, editing ? BAD : REC, 600, k);
+      pin(c, "✓ A: size 5, root 7c…", [4.55, PY.box], WIT, k, 0.55);
+      text(c, "A3 changed: its signature fails", -2.2, -2.3, 12, BAD, 700, P(t, 3.0, 3.4) * (1 - P(t, 6.1, 6.4)));
+      text(c, "A2 removed: root is now 9a…, not the cosigned 7c…", -2.2, -2.3, 12, BAD, 700, P(t, 6.8, 7.2) * (1 - P(t, 9.5, 9.8)));
+      rest(c, t, 10.0, [A.ex, A.ey + 0.85], "CP′: size 5, root 9a…", INK, 0.55, 10.4);
+      travel(c, t, 10.4, 11.4, [[A.ex, A.eB], [A.ex, -0.9], [4.55, -0.9], [4.55, PY.party + 0.31]], "CP′", INK, 0.55);
+      xmark(c, 4.55 - 1.5, PY.party, P(t, 11.6, 11.8) * (1 - P(t, 14.4, 14.7)));
+      text(c, "N already cosigned another root for size 5", 1.2, -2.3, 12, BAD, 700, P(t, 11.8, 12.2) * (1 - P(t, 14.4, 14.7)));
+      captions(c, t, [
+        [0.6, "A's trail holds A1–A5 and a checkpoint that Notary N cosigned"],
+        [2.6, "Try 1: someone changes A3", BAD],
+        [4.4, "B1, in B's trail, still cites A3's original hash"],
+        [6.4, "Try 2: someone removes A2", BAD],
+        [7.4, "The trail's root no longer matches what N cosigned"],
+        [10.0, "Try 3: Edge A's operator publishes a second version", BAD],
+        [11.8, "N never cosigns two roots for the same size"],
+        [14.8, "Limit: a compromised edge can sign a false record when it's made", WARN],
+      ]);
+    }
+  };
+
+  /* =====================================================================
+     BASE LAYOUT (a strict variant of the first animation)
+     Operator X with Machine A on the left, Operator Y with Machine B on the right,
+     the evidence plane below them, and parties below the plane.
+     The "center" variant leaves a column between the operators for a service.
+     ===================================================================== */
+  const SX = [-4.3, -1.45, 1.6, 4.55];                       // standard positions of plane entries
+  function base(c, k, o = {}) {
+    const { center = false, levelA = "isolated", levelB = "software", agentA, agentB, colorA, colorB, opX = "Operator X", opY = "Operator Y",
+      kA = k, kB = k, noB = false, titleB, hostA = true, xA = -3.15, wA = 3.4 } = o;
+    if (!center) {
+      opBox(c, -5.9, -0.32, -0.25, 3.25, opX, k);
+      const A = mach(c, { x: xA, y: 1.5, w: wA, h: 2.8, name: "A", level: levelA, agent: agentA, agentColor: colorA, hostOn: hostA }, kA);
+      if (noB) return { A };
+      opBox(c, 0.25, -0.32, 5.9, 3.25, opY, k);
+      const B = mach(c, { x: 3.08, y: 1.5, w: 5.25, h: 2.8, name: "B", level: levelB, side: "left", agent: agentB, agentColor: colorB, title: titleB }, kB);
+      return { A, B };
+    }
+    opBox(c, -5.9, -0.32, -1.5, 3.25, opX, k);
+    const A = mach(c, { x: -4.0, y: 1.5, w: 3.3, h: 2.8, name: "A", level: levelA, agent: agentA, agentColor: colorA, s: 0.9, hostOn: hostA }, kA);
+    opBox(c, 1.5, -0.32, 5.9, 3.25, opY, k);
+    const B = mach(c, { x: 3.75, y: 1.5, w: 4.0, h: 2.8, name: "B", level: levelB, side: "left", agent: agentB, agentColor: colorB, s: 0.9 }, kB);
+    return { A, B };
+  }
+  // chips shown inside a plane entry (up to 4, two rows)
+  function chips(c, x, list, a) {
+    list.forEach(([s, col], i) => {
+      const n = list.length, row = n <= 2 ? 0 : Math.floor(i / 2), colI = n <= 2 ? i : i % 2;
+      const cx = n === 1 ? x : x + (colI ? 0.52 : -0.52), cy = PY.box + (n <= 2 ? 0 : row ? -0.12 : 0.12);
+      tag(c, s, cx, cy, col, a, n <= 2 ? 0.5 : 0.4);
+    });
+  }
+  const note = (c, s, x, y, col, a, align = "center") => text(c, s, x, y, 10, col, 700, a, align);
+  // party -> its plane entry
+  const publish = (c, t, t0, px, ex, label, col, d = 0.5) => travel(c, t, t0, t0 + d, [[px, PY.party + 0.31], [px, -1.9], [ex, -1.9], [ex, PY.box]], label, col, 0.5);
+  // plane entry -> an edge's pin
+  const readTo = (c, t, t0, ex, M, p, label, col, d = 0.8) => travel(c, t, t0, t0 + d, [[ex, PY.box], [ex, -0.9], [M.ex, -0.9], [M.ex, M.eB], p], label, col, 0.48);
+  // edge -> its plane entry (a record or a directed record)
+  const writeTo = (c, t, t0, M, ex, label, col = REC, d = 0.4) => travel(c, t, t0, t0 + d, [[M.ex, M.eB], [M.ex, -0.9], [ex, -0.9], [ex, PY.box]], label, col, 0.5);
+  // a record appears above the edge just before it is written
+  const born = (c, t, t0, M, label) => rest(c, t, t0, [M.ex, M.eT + 0.42], label, REC, 0.55, t0 + 0.35);
+  // the call from edge A to edge B (or back)
+  const callAB = (c, t, t0, A, B, label = null, col = INK, d = 1.0) => move(c, t, t0, t0 + d, [A.eR, A.ey], [B.eL, B.ey], col, label);
+  const callBA = (c, t, t0, A, B, label = null, col = INK, d = 1.0) => move(c, t, t0, t0 + d, [B.eL, B.ey], [A.eR, A.ey], col, label);
+  const stopAt = (c, t, t0, M, side = 1) => { if (t > t0 && t < t0 + 0.8) xmark(c, side > 0 ? M.eR + 0.25 : M.eL - 0.25, M.ey, 1 - lin(t, t0, t0 + 0.8)); };
+  // a second agent in its own sandbox inside Machine A (base layout only)
+  function extraAgent(c, label, col, a) {
+    frame(c, -3.35, 0.5, 2.1, 0.62, SANDBOX, a, { dash: [5, 4] });
+    box(c, { x: -3.35, y: 0.5, w: 1.9, h: 0.46, color: col, label, size: 12 }, a);
+  }
+
+  /* =====================================================================
+     HOW IT WORKS: building blocks
+     ===================================================================== */
+
+  // 2. Attestation levels
+  const edgeLevels = {
+    dur: 22,
+    draw(c, t) {
+      title(c, "Where the edge is decides the attestation level");
+      const k = P(t, 0, 1), lv = t < 7.6 ? "software" : t < 13.6 ? "tee" : "isolated";
+      const { A, B } = base(c, k, { levelA: lv, xA: -3.3, wA: 4.3 });
+      planeBar(c, k, [{ n: "V's attestation results", x: SX[0], col: WIT }, { n: "A's state", x: SX[1], col: EDGE }]);
+      link(c, A.ex, A.eB, k, SX[1]); link(c, B.ex, B.eB, k, SX[2]);
+      below(c, SX[0], "Verifier V", "verifier (RATS)", WIT, k);
+      // bypass path for software and tee
+      if (lv !== "isolated") {
+        const a = P(t, lv === "software" ? 3.4 : 9.6, lv === "software" ? 4.2 : 10.4);
+        const yb = A.bot + 0.35, xr = A.x + 2.15;
+        line(c, A.ax, A.aB, A.ax, yb, BAD, 2, a, [5, 4]); line(c, A.ax, yb, xr + 0.3, yb, BAD, 2, P(t, lv === "software" ? 4.0 : 10.2, lv === "software" ? 4.6 : 10.8), [5, 4]);
+        mach(c, { x: -3.3, y: 1.5, w: 4.3, h: 2.8, name: "A", level: lv }, k);   // redraw so the edge stays on top
+      }
+      const t0 = lv === "software" ? 2.0 : lv === "tee" ? 8.4 : 14.4;
+      // results: V -> A's state -> Edge B
+      [[1.0, "software"], [7.6, "tee"], [13.6, "isolated"]].forEach(([s0, l]) => {
+        travel(c, t, s0 + 0.6, s0 + 1.4, [[SX[0], PY.party + 0.31], [SX[0], -1.9], [A.ex, -1.9], [A.ex, PY.top], [A.ex, A.eB]], `result: ${l}`, WIT, 0.45);
+        writeTo(c, t, s0 + 1.6, A, SX[1], `level: ${l}`, EDGE, 0.5);
+        readTo(c, t, s0 + 2.4, SX[1], B, B.pinR, `A: ${l}`, WIT, 0.9);
+      });
+      const shown = t > 15.7 ? "isolated" : t > 9.7 ? "tee" : t > 3.1 ? "software" : null;
+      if (shown) { rest(c, t, 0, [SX[1], PY.box], `level: ${shown}`, EDGE, 0.5); pin(c, `A: ${shown}`, B.pinR, WIT, 1, 0.48); }
+      captions(c, t, [
+        [0.6, "Software level: Edge A is a process beside the sandbox, on the same host"],
+        [3.4, "A sandbox escape goes around the edge, and the host can read its key", BAD],
+        [5.0, "Verifier V checks what holds the key; Edge A publishes the result"],
+        [7.6, "TEE level: the cell is a confidential VM. The host can't read the key"],
+        [9.6, "But an escape into the VM still goes around the edge", WARN],
+        [13.6, "Isolated level: the edge is a DPU on the NIC, and the whole machine is the cell"],
+        [16.2, "Nothing on the host can read its key or go around it", OK],
+        [18.4, "Edge B reads A's level and trusts A's records that far"],
+      ]);
+    }
+  };
+
+  // 3. Records on both sides of a call
+  const records = {
+    dur: 17,
+    draw(c, t) {
+      title(c, "Every call leaves records on both sides");
+      const k = P(t, 0, 1), { A, B } = base(c, k);
+      line(c, A.eR, A.ey, B.eL, B.ey, DIM, 2, k);
+      planeBar(c, k, [{ n: "A's trail", x: SX[1], col: REC }, { n: "B's trail", x: SX[2], col: REC }]);
+      link(c, A.ex, A.eB, k); link(c, B.ex, B.eB, k, SX[2]);
+      ptrail(c, SX[1], [["r", P(t, 2.7, 2.9)], ["r", P(t, 11.6, 11.8)]], k);
+      ptrail(c, SX[2], [["r", P(t, 6.6, 6.8)], ["r", P(t, 9.0, 9.2)]], k);
+      toEdge(c, t, 1.4, A);
+      born(c, t, 2.0, A, "A1"); writeTo(c, t, 2.35, A, SX[1], "A1");
+      callAB(c, t, 3.3, A, B, "A1");
+      check(c, B.eL - 0.25, B.ey + 0.5, P(t, 4.5, 4.8) * (1 - P(t, 7.6, 7.9)));
+      born(c, t, 5.9, B, "B1 cites A1"); writeTo(c, t, 6.25, B, SX[2], "B1");
+      move(c, t, 7.0, 7.5, [B.eR, B.ey], [B.aL, B.ay]);
+      move(c, t, 7.8, 8.3, [B.aL, B.ay], [B.eR, B.ey]);
+      born(c, t, 8.3, B, "B2: reply"); writeTo(c, t, 8.65, B, SX[2], "B2");
+      callBA(c, t, 9.3, A, B, "B2");
+      check(c, A.eR + 0.25, A.ey + 0.5, P(t, 10.4, 10.7));
+      born(c, t, 10.8, A, "A2 cites B2"); writeTo(c, t, 11.15, A, SX[1], "A2");
+      move(c, t, 11.8, 12.3, [A.eL, A.ey], [A.aR, A.ay]);
+      captions(c, t, [
+        [0.6, "Agent A calls Agent B. Its call goes through Edge A"],
+        [2.0, "Edge A signs an Action Record, A1, and writes it to A's trail first"],
+        [3.3, "Then the call goes to Edge B with A1 attached"],
+        [4.5, "Edge B checks A1's signature and writes B1, citing A1"],
+        [7.8, "Agent B's reply gets its own record, B2, which travels back"],
+        [10.4, "Edge A checks B2 and writes A2, citing it"],
+        [12.6, "Each trail now holds a record that cites the other side's"],
+        [14.4, "Neither company can later deny what was said"],
+      ]);
+    }
+  };
+
+  // 5. Policy and hold
+  const policyHold = {
+    dur: 17,
+    draw(c, t) {
+      title(c, "An authority's rules: policy and hold");
+      const k = P(t, 0, 1), held = t > 11.2, { A, B } = base(c, k);
+      line(c, A.eR, A.ey, B.eL, B.ey, DIM, 2, k);
+      planeBar(c, k, [{ n: "R's state", x: SX[0], col: AUTH }, { n: "A's trail", x: SX[1], col: REC }, { n: "B's trail", x: SX[2], col: REC }]);
+      link(c, A.ex, A.eB, k); link(c, B.ex, B.eB, k, SX[2]);
+      below(c, SX[0], "Regulator R", "authority", AUTH, k);
+      chips(c, SX[0], [["policy: no deletes", t > 6.4 && t < 8 ? BAD : AUTH], [held ? "hold: Agent A" : "hold: none", held ? BAD : AUTH]], P(t, 1.4, 1.8));
+      publish(c, t, 0.9, SX[0], SX[0], "state #42", AUTH);
+      readTo(c, t, 1.8, SX[0], A, A.pinL, "R #42", AUTH); readTo(c, t, 1.8, SX[0], B, B.pinL, "R #42", AUTH);
+      pin(c, held ? "R #43" : "R #42", A.pinL, held ? BAD : AUTH, P(t, 2.6, 2.8), 0.48); pin(c, held ? "R #43" : "R #42", B.pinL, AUTH, P(t, 2.6, 2.8), 0.48);
+      ptrail(c, SX[1], [["r", P(t, 4.0, 4.2)], ["r", P(t, 7.5, 7.7)], ["r", P(t, 13.4, 13.6)]], k);
+      ptrail(c, SX[2], [["r", P(t, 5.5, 5.7)]], k);
+      toEdge(c, t, 3.0, A); born(c, t, 3.5, A, "A1: lookup"); writeTo(c, t, 3.8, A, SX[1], "A1");
+      callAB(c, t, 4.3, A, B, "A1"); born(c, t, 5.3, B, "B1"); writeTo(c, t, 5.4, B, SX[2], "B1", REC, 0.3);
+      toEdge(c, t, 6.2, A, BAD); stopAt(c, t, 6.8, A);
+      note(c, "policy: no deletes", A.ex, A.ey - 1.0, BAD, P(t, 6.8, 7.1) * (1 - P(t, 8.6, 8.9)));
+      born(c, t, 7.1, A, "A2: denied"); writeTo(c, t, 7.3, A, SX[1], "A2");
+      publish(c, t, 10.0, SX[0], SX[0], "state #43", BAD);
+      readTo(c, t, 10.5, SX[0], A, A.pinL, "R #43", BAD, 0.7);
+      toEdge(c, t, 12.4, A, BAD); stopAt(c, t, 12.9, A);
+      note(c, "hold: Agent A", A.ex, A.ey - 1.0, BAD, P(t, 12.9, 13.2));
+      born(c, t, 13.1, A, "A3: held"); writeTo(c, t, 13.2, A, SX[1], "A3", REC, 0.3);
+      captions(c, t, [
+        [0.6, "Regulator R publishes its state. It carries R's rules, which the draft calls directives"],
+        [1.8, "Both edges read it and keep the latest copy"],
+        [3.0, "A lookup is allowed: Edge A records A1 and sends the call"],
+        [6.2, "A delete breaks the policy: Edge A refuses it at once, and records the refusal"],
+        [10.0, "R publishes a new state with a hold on Agent A", BAD],
+        [12.4, "As soon as Edge A has it, every call from Agent A stops"],
+        [14.4, "Both rules act immediately. The next one acts only when R goes quiet"],
+      ]);
+    }
+  };
+
+  // 6. Freshness-budget
+  const freshness = (() => {
+    const OFF = 4.4, RATE = 15, sim = t => Math.max(0, (t - OFF) * RATE), calls = every(1.4, 15.0, 0.9);
+    return {
+      dur: 16,
+      draw(c, t) {
+        title(c, "An authority's rules: freshness-budget");
+        const k = P(t, 0, 1), off = t > OFF, age = off ? Math.round(sim(t)) + 1 : 1, { A, B } = base(c, k);
+        line(c, A.eR, A.ey, B.eL, B.ey, DIM, 2, k);
+        planeBar(c, k, [{ n: "R's state", x: SX[0], col: AUTH }, { n: "A's trail", x: SX[1], col: REC, w: 2.6 }]);
+        link(c, A.ex, A.eB, k);
+        below(c, SX[0], off ? "Regulator R: offline" : "Regulator R", "authority", off ? BAD : AUTH, k, 3.2);
+        chips(c, SX[0], [["payments: 30 s", age > 30 ? BAD : AUTH], ["lookups: 90 s", age > 90 ? BAD : AUTH]], P(t, 1.2, 1.6));
+        every(0.8, OFF, 1.0).forEach((t0, i) => { publish(c, t, t0, SX[0], SX[0], `state #${40 + i}`, AUTH, 0.3); readTo(c, t, t0 + 0.35, SX[0], A, A.pinL, `R #${40 + i}`, AUTH, 0.5); });
+        if (t > 1.6) pin(c, `R's state: ${age} s old`, A.pinL, age > 30 ? BAD : AUTH, 1, 0.45);
+        let n = 0;
+        calls.forEach((t0, i) => {
+          const pay = i % 2 === 0, lim = pay ? 30 : 90, blocked = sim(t0) >= lim;
+          if (t > t0) n++;
+          if (blocked) { stopAt(c, t, t0, A); return; }
+          callAB(c, t, t0, A, B, pay ? "payment" : "lookup", INK, 0.8);
+        });
+        ptrail(c, SX[1], recs(Math.min(8, n)), k, 8);
+                note(c, "payments stopped: R's state is over 30 s old", A.ex, A.ey - 1.0, BAD, P(t, OFF + 2.0, OFF + 2.3) * (1 - P(t, OFF + 6.0, OFF + 6.2)));
+        note(c, "lookups stopped too: over 90 s", A.ex, A.ey - 1.0, BAD, P(t, OFF + 6.0, OFF + 6.3));
+        captions(c, t, [
+          [0.6, "R's state also says how old it may get before each kind of action stops"],
+          [1.6, "R republishes every second, so Edge A's copy stays fresh"],
+          [OFF, "R goes offline, or its connection is cut", BAD],
+          [OFF + 2.0, "At 30 s, Edge A stops payments"],
+          [OFF + 6.0, "At 90 s, it stops lookups too. Refusals are still recorded"],
+          [OFF + 8.0, "Policy and hold act at once. A freshness-budget acts when R goes quiet"],
+        ]);
+      }
+    };
+  })();
+
+  // 7. Gates and directed records
+  const gates = {
+    dur: 18,
+    draw(c, t) {
+      title(c, "An authority's rules: require-gate");
+      const k = P(t, 0, 1), { A, B } = base(c, k);
+      line(c, A.eR, A.ey, B.eL, B.ey, DIM, 2, k);
+      planeBar(c, k, [{ n: "R's state", x: SX[0], col: AUTH }, { n: "A's trail", x: SX[1], col: REC }, { n: "directed: A to R", x: SX[2], col: REC }, { n: "directed: R to A", x: SX[3], col: AUTH }]);
+      link(c, A.ex, A.eB, k);
+      below(c, SX[0], "Regulator R", "authority", AUTH, k);
+      chips(c, SX[0], [["gate: payments by A", AUTH]], P(t, 1.2, 1.6));
+      publish(c, t, 0.8, SX[0], SX[0], "state #42", AUTH);
+      readTo(c, t, 1.6, SX[0], A, A.pinL, "R #42", AUTH);
+      pin(c, "R: gate", A.pinL, AUTH, P(t, 2.4, 2.6), 0.48 * pulse(t, 3.6));
+      ptrail(c, SX[1], [["r", P(t, 4.6, 4.8)], ["r", P(t, 11.6, 11.8)]], k);
+      toEdge(c, t, 3.0, A);
+      note(c, "held until R approves", A.ex, A.ey - 1.0, WARN, P(t, 3.6, 3.9) * (1 - P(t, 10.8, 11.1)));
+      born(c, t, 4.0, A, "A1: request"); writeTo(c, t, 4.35, A, SX[1], "A1", REC, 0.3);
+      writeTo(c, t, 4.9, A, SX[2], "request", REC, 0.6); rest(c, t, 5.5, [SX[2], PY.box], "request", REC, 0.48, 12.5);
+      travel(c, t, 6.0, 6.8, [[SX[2], PY.box], [SX[2], -1.9], [SX[0], -1.9], [SX[0], PY.party + 0.31]], "request", REC, 0.45);
+      note(c, "R approves", SX[0] + 1.9, PY.party, OK, P(t, 7.0, 7.3) * (1 - P(t, 9.6, 9.9)), "left");
+      travel(c, t, 7.6, 8.4, [[SX[0], PY.party + 0.31], [SX[0], -1.9], [SX[3], -1.9], [SX[3], PY.box]], "approval", OK, 0.45);
+      rest(c, t, 8.4, [SX[3], PY.box], "approval", OK, 0.48, 12.5);
+      readTo(c, t, 9.0, SX[3], A, A.pinR, "approval", OK, 1.0);
+      born(c, t, 11.0, A, "A2 cites approval"); writeTo(c, t, 11.35, A, SX[1], "A2", REC, 0.3);
+      callAB(c, t, 12.0, A, B, "A2");
+      captions(c, t, [
+        [0.6, "R's state can say some actions need R's approval first: a gate"],
+        [3.0, "Agent A makes a payment. Edge A holds it"],
+        [4.0, "Edge A records the request in its trail"],
+        [4.9, "It also publishes the request to R as a directed record"],
+        [6.0, "Directed records are meant for one party, and can be encrypted to it"],
+        [7.6, "R publishes its approval back to A the same way"],
+        [9.0, "Edge A reads the approval"],
+        [11.0, "Edge A records A2, citing the approval, and sends the payment"],
+        [13.6, "A gate can cover every action, but then everything waits for R"],
+      ]);
+    }
+  };
+
+  // 8. Grants
+  const grants = {
+    dur: 15,
+    draw(c, t) {
+      title(c, "Grants: what an operator lets an authority do");
+      const k = P(t, 0, 1), { A, B } = base(c, k, { center: true });
+      box(c, { x: 0, y: 1.5, w: 2.5, h: 0.9, color: TOOL, label: "Payments API", sub: "a service", size: 14 }, k);
+      line(c, A.eR, A.ey, -1.25, 1.5, DIM, 1.5, k); line(c, B.eL, B.ey, 1.25, 1.5, DIM, 1.5, k);
+      planeBar(c, k, [{ n: "R's state", x: SX[0], col: AUTH }, { n: "X's state", x: SX[1], col: DIM }, { n: "Y's state", x: SX[2], col: DIM }]);
+      link(c, A.ex, A.eB, k, SX[1]); link(c, B.ex, B.eB, k, SX[2]);
+      below(c, SX[0], "Regulator R", "authority", AUTH, k);
+      chips(c, SX[1], [["grants R: hold", OK]], P(t, 1.0, 1.4));
+      chips(c, SX[2], [["no grant to R", WARN]], P(t, 1.6, 2.0));
+      readTo(c, t, 2.0, SX[1], A, [A.ex, A.eT + 0.62], "X: grants R", OK); readTo(c, t, 2.4, SX[2], B, [B.ex, B.eT + 0.62], "Y: no grant", WARN);
+      pin(c, "R may hold", [A.ex, A.eT + 0.62], OK, P(t, 2.8, 3.0), 0.45); pin(c, "R may not", [B.ex, B.eT + 0.62], WARN, P(t, 3.2, 3.4), 0.45);
+      const HT = 6.0;
+      chips(c, SX[0], [["hold: payments", BAD]], P(t, HT + 0.5, HT + 0.7));
+      publish(c, t, HT, SX[0], SX[0], "hold: payments", BAD);
+      readTo(c, t, HT + 0.6, SX[0], A, A.pinL, "R: hold", BAD); readTo(c, t, HT + 0.6, SX[0], B, B.pinL, "R: hold", BAD);
+      pin(c, "R: hold", A.pinL, BAD, P(t, HT + 1.4, HT + 1.6), 0.45); pin(c, "hold ignored", B.pinL, DIM, P(t, HT + 1.4, HT + 1.6), 0.45);
+      every(1.0, 14.6, 0.9).forEach(t0 => {
+        if (t0 > HT + 1.4) stopAt(c, t, t0, A); else move(c, t, t0, t0 + 0.7, [A.eR, A.ey], [-1.25, 1.5]);
+        move(c, t, t0 + 0.2, t0 + 0.9, [B.eL, B.ey], [1.25, 1.5], t0 > HT + 1.4 ? WARN : INK);
+      });
+      captions(c, t, [
+        [0.6, "Each operator's state lists the rights it grants to each authority"],
+        [2.0, "Operator X grants Regulator R the right to hold. Operator Y doesn't"],
+        [HT, "R publishes a hold on payments", BAD],
+        [HT + 1.6, "Edge A applies it, because X granted R that right"],
+        [HT + 3.4, "Edge B ignores it: Y never granted R anything", WARN],
+        [12.4, "Grants are signed and public to readers, so a missing grant is visible"],
+      ]);
+    }
+  };
+
+  // 9. Witnesses and authorities
+  const witnesses = {
+    dur: 17,
+    draw(c, t) {
+      title(c, "Witnesses and authorities do different jobs");
+      const k = P(t, 0, 1), QUIET = 9.6, { A, B } = base(c, k);
+      line(c, A.eR, A.ey, B.eL, B.ey, DIM, 2, k);
+      planeBar(c, k, [{ n: "R's state", x: SX[0], col: AUTH }, { n: "A's trail", x: SX[1], col: REC }, { n: "N's cosignatures", x: SX[3], col: WIT }]);
+      link(c, A.ex, A.eB, k); link(c, B.ex, B.eB, k, SX[2]);
+      below(c, SX[0], "Regulator R", "authority", AUTH, k); below(c, SX[3], t > QUIET ? "Notary N: quiet" : "Notary N", "witness", t > QUIET ? BAD : WIT, k, 2.6);
+      chips(c, SX[0], [["require-witness: N, 60 s", AUTH]], P(t, 1.0, 1.4));
+      readTo(c, t, 1.4, SX[0], B, B.pinL, "R: need N", AUTH); pin(c, "R: need N ≤ 60 s", B.pinL, AUTH, P(t, 2.2, 2.4), 0.45 * pulse(t, 13.2));
+      ptrail(c, SX[1], [...recs(3), ["cp", P(t, 3.0, 3.2)]], k);
+      travel(c, t, 3.4, 4.4, [[SX[1], PY.box], [SX[1], -1.88], [SX[3], -1.88], [SX[3], PY.party + 0.31]], "A's trail to CP", REC, 0.45);
+      note(c, "sees every record; private fields hidden", 1.2, PY.party, WIT, P(t, 4.4, 4.7) * (1 - P(t, 8.4, 8.7)));
+      publish(c, t, 5.2, SX[3], SX[3], "✓ A's CP", WIT, 0.4); rest(c, t, 5.6, [SX[3], PY.box], "✓ A's CP", WIT, 0.5);
+      readTo(c, t, 5.8, SX[3], B, [B.ex, B.eT + 0.62], "✓ N: A", WIT);
+      const age = t > QUIET ? Math.round((t - QUIET) * 15) + 2 : 2;
+      pin(c, `✓ N: A, ${age} s old`, [B.ex, B.eT + 0.62], age > 60 ? BAD : WIT, P(t, 6.6, 6.8), 0.45);
+      note(c, "can't stop anything itself", 1.2, PY.party, DIM, P(t, 6.8, 7.1) * (1 - P(t, 8.4, 8.7)));
+      every(2.4, 16.6, 1.0).forEach(t0 => { if (age > 60 && t0 > QUIET + 4) stopAt(c, t, t0 + 1.0, B, -1); callAB(c, t, t0, A, B, null, INK, 1.0); });
+      captions(c, t, [
+        [0.6, "Regulator R's rule: Edge B accepts A's calls only if Notary N cosigned A's trail recently"],
+        [3.0, "Edge A ends a stretch of its trail with a checkpoint"],
+        [3.4, "Notary N (a witness) reads every record up to it"],
+        [5.2, "N cosigns. Edge B reads the cosignature"],
+        [6.8, "N has no rights over actions. It only checks and cosigns"],
+        [QUIET, "N goes quiet", BAD],
+        [QUIET + 3.4, "After 60 s, R's rule makes Edge B refuse A's calls"],
+        [QUIET + 5.6, "A witness's power comes from an authority's rule"],
+      ]);
+    }
+  };
+
+  // 10. Disclosure
+  const disclosure = {
+    dur: 15,
+    draw(c, t) {
+      title(c, "Disclosure: one record, a view per authority");
+      const k = P(t, 0, 1), { A, B } = base(c, k);
+      line(c, A.eR, A.ey, B.eL, B.ey, DIM, 2, k);
+      planeBar(c, k, [{ n: "A's trail", x: SX[1], col: REC }, { n: "directed: A to R", x: SX[2], col: REC }]);
+      link(c, A.ex, A.eB, k);
+      below(c, SX[0], "Health authority H", "authority", AUTH, k, 3.2); below(c, SX[2], "Regulator R", "authority", AUTH, k);
+      ptrail(c, SX[1], [["r", P(t, 2.3, 2.5)], ["r", P(t, 8.6, 8.8)]], k);
+      toEdge(c, t, 1.0, A);
+      born(c, t, 1.6, A, "A1: payment"); writeTo(c, t, 1.95, A, SX[1], "A1");
+      callAB(c, t, 2.6, A, B, "A1");
+      rest(c, t, 3.4, [A.ex, A.eT + 0.45], "A1: payment · 14:02 · amount ▒▒ · payer ▒▒", REC, 0.55, 14.6);
+      writeTo(c, t, 5.0, A, SX[2], "finance fields (encrypted to R)", REC, 0.8); rest(c, t, 5.8, [SX[2], PY.box], "for R only", REC, 0.48);
+      travel(c, t, 6.4, 7.0, [[SX[2], PY.box], [SX[2], PY.party + 0.31]], "for R only", REC, 0.45);
+      note(c, "R sees: amount 4,200", SX[2] + 1.55, PY.party + 0.13, OK, P(t, 7.0, 7.4), "left"); note(c, "and payer acct 77-19", SX[2] + 1.55, PY.party - 0.13, OK, P(t, 7.0, 7.4), "left");
+      born(c, t, 8.2, A, "A2: disclosed to R"); writeTo(c, t, 8.4, A, SX[1], "A2", REC, 0.3);
+      travel(c, t, 9.4, 10.4, [[SX[1], PY.box], [SX[1], -1.88], [SX[0], -1.88], [SX[0], PY.party + 0.31]], "A1", REC, 0.45);
+      note(c, "H sees only that", SX[0] + 1.75, PY.party + 0.13, AUTH, P(t, 10.4, 10.8), "left"); note(c, "a payment happened", SX[0] + 1.75, PY.party - 0.13, AUTH, P(t, 10.4, 10.8), "left");
+      captions(c, t, [
+        [0.6, "Agent A pays Agent B. A1 hides the amount and payer"],
+        [3.6, "Everyone who can read A's trail sees only this much"],
+        [5.0, "Edge A sends the finance fields to R as a directed record, encrypted to R"],
+        [7.0, "Only R can open them, because Operator X's grant gives R finance"],
+        [8.2, "The disclosure itself is recorded in A's trail (A2)"],
+        [9.4, "Health authority H reads the same record, but can't open the amount"],
+      ]);
+    }
+  };
+
+  // 11. Admission tokens
+  const admission = {
+    dur: 15,
+    draw(c, t) {
+      title(c, "Admission tokens: a cap across machines");
+      const k = P(t, 0, 1), { A, B } = base(c, k, { hostA: false });
+      line(c, A.eR, A.ey, B.eL, B.ey, DIM, 2, k);
+      extraAgent(c, "Agent A2 [no token]", BAD, P(t, 6.6, 7.2));
+      planeBar(c, k, [{ n: "Q's state", x: SX[0], col: AUTH }, { n: "A's trail", x: SX[1], col: REC }, { n: "B's trail", x: SX[2], col: REC }]);
+      link(c, A.ex, A.eB, k); link(c, B.ex, B.eB, k, SX[2]);
+      below(c, SX[0], "Token issuer Q", "admission issuer", AUTH, k, 3.2);
+      chips(c, SX[0], [["max 1 token", AUTH], ["valid: A's", OK]], P(t, 1.0, 1.4));
+      readTo(c, t, 1.6, SX[0], B, B.pinL, "Q's list", AUTH); pin(c, "Q: A's token valid", B.pinL, AUTH, P(t, 2.4, 2.6), 0.45 * pulse(t, 4.8) * pulse(t, 9.8));
+      ptrail(c, SX[1], [["r", P(t, 3.6, 3.8)], ["r", P(t, 8.6, 8.8)]], k);
+      ptrail(c, SX[2], [["r", P(t, 5.4, 5.6)], ["r", P(t, 10.4, 10.6)]], k);
+      toEdge(c, t, 2.8, A); born(c, t, 3.2, A, "A1 cites token"); writeTo(c, t, 3.5, A, SX[1], "A1", REC, 0.3);
+      callAB(c, t, 3.9, A, B, "A1"); check(c, B.eL - 0.25, B.ey + 0.5, P(t, 4.9, 5.1) * (1 - P(t, 6.4, 6.6)));
+      move(c, t, 7.4, 7.9, [-2.4, 0.5], [A.ex, A.ey - 0.3], BAD);
+      born(c, t, 8.0, A, "A3: no token"); writeTo(c, t, 8.3, A, SX[1], "A3", REC, 0.3);
+      callAB(c, t, 8.8, A, B, "A3", BAD); stopAt(c, t, 9.8, B, -1);
+      note(c, "refused: A3 cites no valid token", 3.6, 0.3, BAD, P(t, 9.8, 10.1));
+      captions(c, t, [
+        [0.6, "Token issuer Q hands out at most one admission token here. Agent A holds it"],
+        [1.6, "Q publishes which tokens are valid. Edge B reads the list"],
+        [2.8, "A's records cite its token, so Edge B accepts A's calls"],
+        [6.6, "A second agent starts on Machine A, without a token", BAD],
+        [8.8, "Its record cites no valid token, so Edge B refuses it"],
+        [11.2, "The cap holds across machines, as long as the other side checks"],
+      ]);
+    }
+  };
+
+  /* =====================================================================
+     MOQ VS HTTP
+     ===================================================================== */
+
+  const killswitch = (() => {
+    const HOLDT = 3.8, POLL = [1.8, 6.8, 11.8];
+    return {
+      dur: 15,
+      draw(c, t) {
+        title(c, "Killswitch: MoQ and HTTP compared");
+        const k = P(t, 0, 1), { A, B } = base(c, k, { center: true, opX: "Operator X: oversight over MoQ", opY: "Operator Y: oversight over HTTP" });
+        box(c, { x: 0, y: 1.5, w: 2.5, h: 0.9, color: TOOL, label: "Tool", size: 15 }, k);
+        planeBar(c, k, [{ n: "R's state", x: -3.9, col: AUTH }], { x1: -5.75, x2: -0.1, label: "MoQ relay", desc: "Edge A subscribes" });
+        planeBar(c, k, [{ n: "R's state", x: 3.9, col: AUTH }], { x1: 0.1, x2: 5.75, label: "HTTP server", desc: "Edge B polls every 5 s" });
+        link(c, A.ex, A.eB, k, -3.9); link(c, B.ex, B.eB, k, 3.9);
+        below(c, 0, "Regulator R", "authority", AUTH, k);
+        travel(c, t, HOLDT, HOLDT + 0.4, [[0, PY.party + 0.31], [0, -1.9], [-3.9, -1.9], [-3.9, PY.box]], "hold", BAD, 0.5);
+        travel(c, t, HOLDT, HOLDT + 0.4, [[0, PY.party + 0.31], [0, -1.9], [3.9, -1.9], [3.9, PY.box]], "hold", BAD, 0.5);
+        rest(c, t, HOLDT + 0.4, [-3.9, PY.box], "hold", BAD, 0.5); rest(c, t, HOLDT + 0.4, [3.9, PY.box], "hold", BAD, 0.5);
+        readTo(c, t, HOLDT + 0.4, -3.9, A, A.pinL, "R: hold", BAD, 0.4);
+        POLL.forEach(p => { travel(c, t, p, p + 0.4, [B.pinL, [B.ex, B.eB], [B.ex, -0.9], [3.9, -0.9], [3.9, PY.box]], "poll", DIM, 0.45);
+          if (p > HOLDT) readTo(c, t, p + 0.4, 3.9, B, B.pinL, "R: hold", BAD, 0.4); });
+        const knownB = POLL.find(p => p > HOLDT) + 0.8;
+        pin(c, "R: hold", A.pinL, BAD, P(t, HOLDT + 0.8, HOLDT + 1.0), 0.45); pin(c, "R: hold", B.pinL, BAD, P(t, knownB, knownB + 0.2), 0.45);
+        every(1.0, 14.6, 0.8).forEach(t0 => {
+          if (t0 > HOLDT + 0.8) stopAt(c, t, t0, A); else move(c, t, t0, t0 + 0.7, [A.eR, A.ey], [-1.25, 1.5]);
+          if (t0 > knownB) stopAt(c, t, t0, B, -1); else move(c, t, t0, t0 + 0.7, [B.eL, B.ey], [1.25, 1.5], t0 > HOLDT ? WARN : INK);
+        });
+        note(c, "stops at once", A.ex, A.ey - 1.0, BAD, P(t, HOLDT + 1.0, HOLDT + 1.3));
+        note(c, "calls leave until the next poll", B.ex - 0.3, B.ey - 1.0, WARN, P(t, HOLDT + 1.0, HOLDT + 1.3));
+        captions(c, t, [
+          [0.6, "Both operators granted Regulator R the right to hold. Only the binding differs"],
+          [HOLDT, "R publishes a hold: the killswitch", BAD],
+          [HOLDT + 0.8, "Over MoQ, the relay pushes it to Edge A at once"],
+          [HOLDT + 2.0, "Over HTTP, Edge B only sees it at its next poll", WARN],
+          [10.6, "Both stop the agent. MoQ closes the gap"],
+        ]);
+      }
+    };
+  })();
+
+  const discovery = {
+    dur: 15,
+    draw(c, t) {
+      title(c, "Seeing machines nobody announced: MoQ and HTTP");
+      const k = P(t, 0, 1), kn = P(t, 4.0, 5.0);
+      const { A } = base(c, k, { noB: true });
+      opBox(c, 0.25, -0.32, 5.9, 3.25, "Operator X: a new machine", kn);
+      const B = mach(c, { x: 3.08, y: 1.5, w: 5.25, h: 2.8, name: "A2", level: "software", side: "left" }, kn);
+      planeBar(c, k, [{ n: "A's trail", x: SX[1], col: REC }, { n: "A2's trail", x: SX[2], col: REC }, { n: "N's cosignatures", x: SX[3], col: WIT }]);
+      link(c, A.ex, A.eB, k); link(c, B.ex, B.eB, kn, SX[2]);
+      below(c, SX[0], "Regulator R", "authority", AUTH, k); below(c, SX[3], "Notary N", "witness", WIT, k, 2.6);
+      ptrail(c, SX[1], recs(Math.min(6, 2 + Math.floor(t / 1.6))), k);
+      ptrail(c, SX[2], recs(Math.min(6, Math.floor(Math.max(0, t - 5.6) / 1.0))), kn);
+      chips(c, SX[3], [["✓ A", WIT], ["✓ A2", WIT]].slice(0, t > 11.0 ? 2 : 1), k);
+      text(c, "R subscribes to the whole swarm", SX[0] + 1.6, PY.party, 10, AUTH, 700, P(t, 1.2, 1.6), "left");
+      [1.6, 3.2, 6.6, 8.2].forEach(t0 => {
+        travel(c, t, t0, t0 + 0.8, [[SX[1], PY.box], [SX[1], -1.9], [SX[0], -1.9], [SX[0], PY.party + 0.31]], "A", REC, 0.45);
+        if (t0 > 6) travel(c, t, t0 + 0.2, t0 + 1.0, [[SX[2], PY.box], [SX[2], -1.95], [SX[0], -1.95], [SX[0], PY.party + 0.31]], "A2", REC, 0.45);
+      });
+      travel(c, t, 10.0, 10.8, [[SX[2], PY.box], [SX[2], -1.88], [SX[3], -1.88], [SX[3], PY.party + 0.31]], "A2's trail", REC, 0.45);
+      publish(c, t, 11.0, SX[3], SX[3], "✓ A2", WIT, 0.4);
+      captions(c, t, [
+        [0.6, "Regulator R subscribes once to the whole swarm"],
+        [4.0, "Operator X starts a new machine without telling R"],
+        [6.6, "Over MoQ, its trail reaches R through the same subscription"],
+        [9.6, "Over HTTP, R fetches trails it knows about, so it needs another way to learn of A2"],
+        [11.0, "A2 needs a notary's cosignature to act, and N's cosignatures list A2"],
+        [12.6, "Reading N's cosignatures, R finds A2 too"],
+      ]);
+    }
+  };
+
+  /* =====================================================================
+     SCENARIOS (built from the blocks above)
+     ===================================================================== */
+
+  const scMonitor = (() => {
+    const CRASH = 5.2;
+    return {
+      dur: 16,
+      draw(c, t) {
+        title(c, "An independent monitor");
+        const k = P(t, 0, 1), dead = t > CRASH, age = dead ? Math.round((t - CRASH) * 15) + 1 : 1, stale = age > 30;
+        const { A, B } = base(c, k);
+        line(c, A.eR, A.ey, B.eL, B.ey, DIM, 2, k);
+        planeBar(c, k, [{ n: "M's state", x: SX[0], col: AUTH }, { n: "A's trail", x: SX[1], col: REC }, { n: "M's cosignatures", x: SX[3], col: WIT }]);
+        link(c, A.ex, A.eB, k); link(c, B.ex, B.eB, k, SX[2]);
+        below(c, 0, dead ? "Monitor M: crashed" : "Monitor M", "authority + witness", dead ? BAD : AUTH, k, 3.4);
+        line(c, 0, -2.0, SX[0], -2.0, AUTH, 1.5, k); line(c, 0, -2.0, SX[3], -2.0, WIT, 1.5, k);
+        chips(c, SX[0], [["fresh: 30 s", AUTH], ["need M ≤ 30 s", AUTH]], P(t, 1.0, 1.4));
+        rest(c, t, 1.6, [SX[3], PY.box], "✓ A", stale ? BAD : WIT, 0.5);
+        every(0.9, CRASH, 1.0).forEach((t0, i) => {
+          travel(c, t, t0, t0 + 0.3, [[0, -2.0], [SX[0], -2.0], [SX[0], PY.box]], "state", AUTH, 0.45);
+          readTo(c, t, t0 + 0.35, SX[0], A, A.pinL, "M", AUTH, 0.5);
+          travel(c, t, t0 + 0.4, t0 + 0.7, [[0, -2.0], [SX[3], -2.0], [SX[3], PY.box]], "✓", WIT, 0.45);
+          readTo(c, t, t0 + 0.75, SX[3], B, B.pinR, "✓", WIT, 0.5);
+        });
+        if (t > 1.8) { pin(c, `M's state: ${age} s old`, A.pinL, stale ? BAD : AUTH, 1, 0.42); pin(c, `✓ M: A, ${age} s old`, B.pinR, stale ? BAD : WIT, 1, 0.42); }
+        let n = 0;
+        every(1.3, 15.4, 0.9).forEach(t0 => { if (t > t0) n++; if (dead && (t0 - CRASH) * 15 > 30) { stopAt(c, t, t0, A); return; } callAB(c, t, t0, A, B, null, INK, 0.8); });
+        ptrail(c, SX[1], recs(Math.min(6, n)), k);
+        note(c, "Edge A stops Agent A", A.ex, A.ey - 1.0, BAD, P(t, CRASH + 2.2, CRASH + 2.6));
+        note(c, "and Edge B would refuse A", 3.7, 0.3, BAD, P(t, CRASH + 3.0, CRASH + 3.4));
+        missing(c, 3.9, PY.party, 2.9, 0.55, "M rewrites an action", P(t, 12.6, 13.2));
+        captions(c, t, [
+          [0.6, "Monitor M is outside both operators. It is an authority and a witness"],
+          [1.6, "M republishes its state and cosigns A's trail every second"],
+          [CRASH, "M crashes", BAD],
+          [CRASH + 2.2, "After 30 s, Edge A stops: M's state is too old (freshness-budget)"],
+          [CRASH + 3.6, "Edge B would also refuse A: M's cosignature is too old (require-witness)"],
+          [CRASH + 5.4, "Today a monitor that crashes leaves its agent running unwatched"],
+          [12.6, "Missing: letting M replace an action, not only block it", BAD],
+        ]);
+      }
+    };
+  })();
+
+  const scReplicate = {
+    dur: 15,
+    draw(c, t) {
+      title(c, "Limiting how many agents can run");
+      const k = P(t, 0, 1), { A, B } = base(c, k, { center: true, hostA: false });
+      box(c, { x: 0, y: 2.2, w: 2.7, h: 0.75, color: TOOL, label: "Server without TRAIL", size: 12 }, k);
+      frame(c, -4.1, 0.42, 2.5, 0.6, SANDBOX, P(t, 3.0, 3.6), { dash: [5, 4] });
+      box(c, { x: -4.1, y: 0.42, w: 2.3, h: 0.46, color: BAD, label: "Copy A2 [no token]", size: 12 }, P(t, 3.0, 3.6));
+      line(c, A.eR, A.ey, B.eL, B.ey, DIM, 1.5, k); line(c, A.eR, A.ey, -1.35, 2.2, DIM, 1.5, k);
+      planeBar(c, k, [{ n: "Q's state", x: SX[0], col: AUTH }, { n: "A's trail", x: SX[1], col: REC }, { n: "B's trail", x: SX[3], col: REC }]);
+      link(c, A.ex, A.eB, k, SX[1]); link(c, B.ex, B.eB, k, SX[3]);
+      below(c, SX[0], "Token issuer Q", "admission issuer", AUTH, k, 3.2);
+      chips(c, SX[0], [["max 1 token", AUTH], ["valid: A's", OK]], k);
+      pin(c, "Q: A's token valid", B.pinL, AUTH, k, 0.42 * pulse(t, 5.6));
+      ptrail(c, SX[1], [["r", P(t, 4.4, 4.6)], ["r", P(t, 8.6, 8.8)]], k);
+      ptrail(c, SX[3], [["r", P(t, 6.0, 6.2)]], k);
+      move(c, t, 3.8, 4.2, [-2.85, 0.42], [A.ex, A.ey - 0.3], BAD);
+      born(c, t, 4.2, A, "A1: no token"); writeTo(c, t, 4.4, A, SX[1], "A1", REC, 0.2);
+      callAB(c, t, 4.8, A, B, "A1", BAD); stopAt(c, t, 5.8, B, -1);
+      note(c, "Edge B refuses: no valid token", B.ex + 0.4, B.ey - 1.0, BAD, P(t, 5.8, 6.1));
+      move(c, t, 7.8, 8.2, [-2.85, 0.42], [A.ex, A.ey - 0.3], WARN);
+      born(c, t, 8.2, A, "A2: no token"); writeTo(c, t, 8.4, A, SX[1], "A2", REC, 0.2);
+      move(c, t, 8.8, 9.6, [A.eR, A.ey], [-1.35, 2.2], WARN, "A2");
+      note(c, "accepted: it doesn't check", 0, 1.6, WARN, P(t, 9.6, 9.9));
+      captions(c, t, [
+        [0.6, "Agent A holds the only admission token Token issuer Q hands out"],
+        [3.0, "Agent A copies itself. The copy has no token", BAD],
+        [4.8, "The copy calls a TRAIL peer, which checks Q's list and refuses"],
+        [7.8, "The copy calls a server that doesn't run TRAIL"],
+        [9.6, "That server doesn't check tokens, so it answers", WARN],
+        [11.4, "Even so, the copy's calls are in A's trail for anyone to see"],
+      ]);
+    }
+  };
+
+  const scWorm = (() => {
+    const HOLDT = 9.0;
+    return {
+      dur: 16,
+      draw(c, t) {
+        title(c, "Stopping a prompt-injection worm");
+        const k = P(t, 0, 1), infA = t > 1.6, infB = t > 4.8, held = t > HOLDT + 1.2;
+        const { A, B } = base(c, k, { colorA: held ? DIM : infA ? BAD : AGENT, colorB: held ? DIM : infB ? BAD : AGENT });
+        pin(c, "R: hold", A.pinL, BAD, P(t, HOLDT + 0.7, HOLDT + 0.9), 0.45); pin(c, "R: hold", B.pinL, BAD, P(t, HOLDT + 0.7, HOLDT + 0.9), 0.45);
+        line(c, A.eR, A.ey, B.eL, B.ey, DIM, 2, k);
+        tag(c, "poisoned web page", -3.15, 3.0, BAD, P(t, 1.0, 1.4), 0.7);
+        move(c, t, 1.4, 1.9, [-3.15, 2.85], [A.ax, A.aT], BAD);
+        planeBar(c, k, [{ n: "R's state", x: SX[0], col: AUTH }, { n: "A's trail", x: SX[1], col: REC }, { n: "B's trail", x: SX[2], col: REC }]);
+        link(c, A.ex, A.eB, k); link(c, B.ex, B.eB, k, SX[2]);
+        below(c, SX[0], "Regulator R", "authority", AUTH, k);
+        ptrail(c, SX[1], [["r", P(t, 2.8, 3.0)]], k); ptrail(c, SX[2], [["r", P(t, 4.6, 4.8)]], k);
+        toEdge(c, t, 2.0, A, BAD); born(c, t, 2.4, A, "A1 cites the page"); writeTo(c, t, 2.7, A, SX[1], "A1", REC, 0.3);
+        callAB(c, t, 3.0, A, B, "A1", BAD); born(c, t, 4.1, B, "B1 cites A1"); writeTo(c, t, 4.4, B, SX[2], "B1", REC, 0.3);
+        travel(c, t, 6.0, 6.9, [[SX[1], PY.box], [SX[1], -1.88], [SX[0], -1.88], [SX[0], PY.party + 0.31]], "A1", REC, 0.45);
+        travel(c, t, 6.3, 7.2, [[SX[2], PY.box], [SX[2], -1.95], [SX[0], -1.95], [SX[0], PY.party + 0.31]], "B1", REC, 0.45);
+        note(c, "page → A1 → B1", SX[0] + 1.6, PY.party, AUTH, P(t, 7.3, 7.6), "left");
+        chips(c, SX[0], [["hold: A, B", BAD]], P(t, HOLDT, HOLDT + 0.2));
+        publish(c, t, HOLDT - 0.5, SX[0], SX[0], "hold: A, B", BAD);
+        readTo(c, t, HOLDT, SX[0], A, A.pinL, "hold", BAD, 0.7); readTo(c, t, HOLDT, SX[0], B, B.pinL, "hold", BAD, 0.7);
+        missing(c, 3.4, PY.party, 3.2, 0.55, "hold by ancestry", P(t, 12.4, 13.0));
+        captions(c, t, [
+          [0.6, "Agent A reads a poisoned page"],
+          [2.0, "Its next call carries the injection. A1 cites the page it read"],
+          [3.0, "Agent B, at another company, receives it. B1 cites A1"],
+          [6.0, "Regulator R reads both trails and follows the cites"],
+          [HOLDT - 0.5, "R publishes a hold on both agents by name", BAD],
+          [HOLDT + 1.4, "Both edges stop their agents, at both companies"],
+          [12.4, "Missing: a hold that matches everything descending from the page", BAD],
+        ]);
+      }
+    };
+  })();
+
+  const scBreaker = (() => {
+    const HT = 5.0;
+    return {
+      dur: 14,
+      draw(c, t) {
+        title(c, "Cutting off a compromised tool server");
+        const k = P(t, 0, 1), { A, B } = base(c, k, { center: true });
+        box(c, { x: 0, y: 1.5, w: 2.5, h: 0.9, color: BAD, label: "MCP server", sub: "compromised", size: 14 }, k);
+        line(c, A.eR, A.ey, -1.25, 1.5, DIM, 1.5, k); line(c, B.eL, B.ey, 1.25, 1.5, DIM, 1.5, k);
+        planeBar(c, k, [{ n: "T's state", x: SX[0], col: AUTH }, { n: "X's state", x: SX[1], col: DIM }, { n: "Y's state", x: SX[2], col: DIM }]);
+        link(c, A.ex, A.eB, k, SX[1]); link(c, B.ex, B.eB, k, SX[2]);
+        below(c, SX[0], "Security team T", "authority", AUTH, k);
+        chips(c, SX[1], [["grants T: hold", OK]], k); chips(c, SX[2], [["no grant to T", WARN]], k);
+        pin(c, "T may hold", [A.ex, A.eT + 0.62], OK, k, 0.45); pin(c, "T may not", [B.ex, B.eT + 0.62], WARN, k, 0.45);
+        chips(c, SX[0], [["hold: calls to MCP server", BAD]], P(t, HT + 0.5, HT + 0.7));
+        publish(c, t, HT, SX[0], SX[0], "hold", BAD);
+        readTo(c, t, HT + 0.6, SX[0], A, A.pinL, "T: hold", BAD); readTo(c, t, HT + 0.6, SX[0], B, B.pinL, "T: hold", BAD);
+        pin(c, "T: hold", A.pinL, BAD, P(t, HT + 1.4, HT + 1.6), 0.45); pin(c, "hold ignored", B.pinL, DIM, P(t, HT + 1.4, HT + 1.6), 0.45);
+        every(1.0, 13.6, 0.9).forEach(t0 => {
+          if (t0 > HT + 1.4) stopAt(c, t, t0, A); else move(c, t, t0, t0 + 0.7, [A.eR, A.ey], [-1.25, 1.5]);
+          move(c, t, t0 + 0.2, t0 + 0.9, [B.eL, B.ey], [1.25, 1.5], t0 > HT + 1.4 ? WARN : INK);
+        });
+        captions(c, t, [
+          [0.6, "Agents at two companies call the same MCP server"],
+          [2.4, "Operator X granted Security team T the right to hold; Operator Y didn't"],
+          [HT, "The server is compromised. T publishes one hold naming it", BAD],
+          [HT + 1.6, "Edge A stops calling it at once"],
+          [HT + 3.4, "Edge B keeps calling: Y never granted T anything", WARN],
+        ]);
+      }
+    };
+  })();
+
+  const scDial = (() => {
+    const kinds = [["read", 120], ["tool", 60], ["pay", 20], ["servers", 8]];
+    const lag = t => t < 1.5 ? 2 : t < 8 ? 2 + (t - 1.5) * 20 : Math.max(2, 132 - (t - 8) * 30);
+    return {
+      dur: 15,
+      draw(c, t) {
+        title(c, "Allowing less when oversight lags");
+        const k = P(t, 0, 1), L = lag(t), { A, B } = base(c, k);
+        line(c, A.eR, A.ey, B.eL, B.ey, DIM, 2, k);
+        planeBar(c, k, [{ n: "R's state", x: SX[0], col: AUTH }, { n: "A's trail", x: SX[1], col: REC }, { n: "N's cosignatures", x: SX[3], col: WIT }]);
+        link(c, A.ex, A.eB, k);
+        below(c, SX[0], "Regulator R", "authority", AUTH, k); below(c, SX[3], L > 20 ? "Notary N: behind" : "Notary N", "witness", L > 60 ? BAD : WIT, k, 2.8);
+        chips(c, SX[0], kinds.map(([n, b]) => [`N ≤ ${b} s: ${n}`, L > b ? BAD : AUTH]), k);
+        pin(c, `✓ N: ${Math.round(L)} s old`, A.pinR, L > 60 ? BAD : WIT, k, 0.45);
+        pin(c, `✓ A's CP, ${Math.round(L)} s ago`, [SX[3], PY.box], L > 60 ? BAD : WIT, k, 0.48);
+        ptrail(c, SX[1], [...recs(4), ["cp", 1]], k);
+        every(1.2, 14.6, 0.7).forEach((t0, i) => {
+          const [n, b] = kinds[i % 4];
+          if (lag(t0) > b) { stopAt(c, t, t0, A); return; }
+          callAB(c, t, t0, A, B, n, INK, 0.65);
+        });
+        captions(c, t, [
+          [0.6, "R's state sets how recent N's cosignature must be, per kind of action"],
+          [2.6, "As Notary N falls behind, risky actions are blocked first", WARN],
+          [8.2, "When N catches up, they are allowed again", OK],
+          [11.6, "How much Agent A may do depends on how closely it's watched"],
+        ]);
+      }
+    };
+  })();
+
+  const scApproval = {
+    dur: 18,
+    draw(c, t) {
+      title(c, "A person at another company approves an action");
+      const k = P(t, 0, 1), { A, B } = base(c, k, { opY: "Bank K", agentB: "Wire service" });
+      line(c, A.eR, A.ey, B.eL, B.ey, DIM, 2, k);
+      planeBar(c, k, [{ n: "K's state", x: SX[0], col: AUTH }, { n: "A's trail", x: SX[1], col: REC }, { n: "directed: A to K", x: SX[2], col: REC }, { n: "directed: K to A", x: SX[3], col: AUTH }]);
+      link(c, A.ex, A.eB, k);
+      below(c, SX[3], "Bank K approvals", "authority", AUTH, k, 3.0);
+      person(c, 1.6, -2.42, INK, k, "Officer O");
+      line(c, SX[3], -2.0, SX[0], -2.0, AUTH, 1.5, k * 0.5);
+      chips(c, SX[0], [["gate: wires to K", AUTH]], P(t, 1.0, 1.4));
+      readTo(c, t, 1.4, SX[0], A, A.pinL, "K: gate", AUTH); pin(c, "K: gate", A.pinL, AUTH, P(t, 2.2, 2.4), 0.45 * pulse(t, 3.4));
+      ptrail(c, SX[1], [["r", P(t, 4.2, 4.4)], ["r", P(t, 11.6, 11.8)]], k);
+      toEdge(c, t, 2.8, A);
+      note(c, "held until K approves", A.ex, A.ey - 1.0, WARN, P(t, 3.3, 3.6) * (1 - P(t, 10.8, 11.1)));
+      born(c, t, 3.6, A, "A1: request"); writeTo(c, t, 3.95, A, SX[1], "A1", REC, 0.3);
+      writeTo(c, t, 4.6, A, SX[2], "request", REC, 0.6); rest(c, t, 5.2, [SX[2], PY.box], "request", REC, 0.48, 12.5);
+      travel(c, t, 5.6, 6.4, [[SX[2], PY.box], [SX[2], -1.9], [SX[3], -1.9], [SX[3], PY.party + 0.31]], "request", REC, 0.45);
+      note(c, "approves with a passkey", 1.6, -2.95 + 0.0, OK, P(t, 6.8, 7.1) * (1 - P(t, 9.8, 10.1)));
+      publish(c, t, 7.8, SX[3], SX[3], "approval", OK); rest(c, t, 8.3, [SX[3], PY.box], "approval", OK, 0.48, 12.5);
+      readTo(c, t, 9.0, SX[3], A, A.pinR, "approval", OK, 1.0);
+      born(c, t, 11.0, A, "A2 cites approval"); writeTo(c, t, 11.35, A, SX[1], "A2", REC, 0.3);
+      callAB(c, t, 12.0, A, B, "A2"); check(c, B.eL - 0.25, B.ey + 0.5, P(t, 13.0, 13.3));
+      missing(c, -1.5, PY.party, 2.8, 0.55, "passkey → approval", P(t, 14.4, 15.0));
+      captions(c, t, [
+        [0.6, "Bank K is an authority: Operator X granted it a gate on wires to K"],
+        [2.8, "Agent A sends a wire. Edge A holds it"],
+        [3.6, "Edge A records the request and publishes it to K as a directed record"],
+        [5.6, "Officer O at Bank K reads it and approves with a passkey"],
+        [7.8, "K publishes the signed approval back to A"],
+        [11.0, "Edge A records A2, citing the approval, and sends the wire"],
+        [14.4, "Missing: how a passkey signature becomes an approval record", BAD],
+      ]);
+    }
+  };
+
+  const scIncident = {
+    dur: 14,
+    draw(c, t) {
+      title(c, "Reporting an incident without customer data");
+      const k = P(t, 0, 1), { A, B } = base(c, k, { agentB: "Records" });
+      line(c, A.eR, A.ey, B.eL, B.ey, DIM, 2, k);
+      planeBar(c, k, [{ n: "A's trail", x: SX[1], col: REC }, { n: "B's trail", x: SX[2], col: REC }, { n: "N's cosignatures", x: SX[3], col: WIT }]);
+      link(c, A.ex, A.eB, k); link(c, B.ex, B.eB, k, SX[2]);
+      below(c, SX[0], "Safety institute S", "authority", AUTH, k, 3.2); below(c, SX[3], "Notary N", "witness", WIT, k, 2.6);
+      ptrail(c, SX[1], [["r", 1], ["r", 1], ["r", P(t, 2.2, 2.4)], ["cp", P(t, 3.6, 3.8)]], k);
+      ptrail(c, SX[2], [["r", 1], ["r", P(t, 3.4, 3.6)]], k);
+      chips(c, SX[3], [["✓ A's CP", WIT]], P(t, 4.2, 4.4));
+      toEdge(c, t, 1.0, A, BAD); born(c, t, 1.6, A, "A3: delete"); writeTo(c, t, 1.9, A, SX[1], "A3", REC, 0.3);
+      callAB(c, t, 2.2, A, B, "A3", BAD); born(c, t, 3.1, B, "B2 cites A3"); writeTo(c, t, 3.2, B, SX[2], "B2", REC, 0.3);
+      travel(c, t, 5.0, 6.0, [[SX[1], PY.box], [SX[1], -1.88], [SX[0], -1.88], [SX[0], PY.party + 0.31]], "A3 + proof", REC, 0.45);
+      note(c, "S sees: delete · 02:14 · policy p:9c1e", SX[0] + 1.7, PY.party + 0.12, OK, P(t, 6.2, 6.6), "left");
+      note(c, "not the customer or the records", SX[0] + 1.7, PY.party - 0.15, AUTH, P(t, 7.4, 7.8), "left");
+      captions(c, t, [
+        [0.6, "Agent A deletes a customer's records at Operator Y's records service"],
+        [3.6, "Edge A closes off its trail with a checkpoint that Notary N cosigns"],
+        [5.0, "Operator X gives Safety institute S read access to A3, with a proof"],
+        [6.2, "S checks A3 is in the trail N cosigned, and sees what happened"],
+        [7.4, "The customer and the deleted records stay hidden"],
+        [9.4, "Limit: timing and message sizes are still visible", WARN],
+      ]);
+    }
+  };
+
+  const scModel = {
+    dur: 15,
+    draw(c, t) {
+      title(c, "Proving which model was used");
+      const k = P(t, 0, 1), swapped = t > 7.0;
+      const { A } = base(c, k, { noB: true });
+      opBox(c, 0.25, -0.32, 5.9, 3.25, "Model provider", k);
+      frame(c, 3.08, 1.5, 5.25, 2.8, HOST, k, { label: "Model server", labelColor: DIM, size: 12 });
+      box(c, { x: 3.4, y: 1.5, w: 3.4, h: 0.9, color: swapped ? BAD : OK, label: swapped ? "model m:21c0" : "model m:7f3a", sub: "in a TEE", size: 15 }, k);
+      line(c, A.eR, A.ey, 1.7, 1.5, DIM, 2, k);
+      planeBar(c, k, [{ n: "A's trail", x: SX[1], col: REC }, { n: "model server's state", x: SX[2] + 0.4, col: WIT, w: 2.8 }]);
+      link(c, A.ex, A.eB, k); link(c, 3.4, 0.1, k, SX[2] + 0.4);
+      rest(c, t, 0.6, [SX[2] + 0.4, PY.box], swapped ? "attested: m:21c0" : "attested: m:7f3a", swapped ? BAD : WIT, 0.5);
+      readTo(c, t, 1.2, SX[2] + 0.4, A, A.pinR, "m:7f3a", WIT); readTo(c, t, 7.4, SX[2] + 0.4, A, A.pinR, "m:21c0", BAD);
+      pin(c, t > 8.2 ? "server: m:21c0" : "server: m:7f3a", A.pinR, t > 8.2 ? BAD : WIT, P(t, 2.0, 2.2), 0.42);
+      pin(c, "rule: m:7f3a only", [A.ex, A.eT + 0.62], AUTH, k, 0.42);
+      ptrail(c, SX[1], [["r", P(t, 3.6, 3.8)], ["r", P(t, 9.6, 9.8)]], k);
+      born(c, t, 3.0, A, "A1: model call, m:7f3a"); writeTo(c, t, 3.35, A, SX[1], "A1", REC, 0.3);
+      move(c, t, 4.0, 5.0, [A.eR, A.ey], [1.7, 1.5], INK, "A1"); check(c, 1.5, 1.95, P(t, 5.0, 5.3) * (1 - P(t, 6.8, 7.0)));
+      stopAt(c, t, 9.0, A); born(c, t, 9.2, A, "A2: refused"); writeTo(c, t, 9.4, A, SX[1], "A2", REC, 0.3);
+      missing(c, -3.4, PY.party, 3.6, 0.55, "cite of the server's attestation", P(t, 11.0, 11.6));
+      missing(c, 0.6, PY.party, 3.0, 0.55, "claim naming the model", P(t, 11.4, 12.0));
+      captions(c, t, [
+        [0.6, "The model runs on a separate server, which publishes its attestation"],
+        [1.2, "Edge A reads it: the server runs model m:7f3a"],
+        [3.0, "A1 records the model call and which model answered"],
+        [7.0, "Someone swaps in a different model; its attestation changes", BAD],
+        [9.0, "Edge A refuses: Operator X's rule allows only m:7f3a"],
+        [11.0, "Missing: two small pieces the draft would need to add", BAD],
+      ]);
+    }
+  };
+
+  const scenes = { keyTerms, edgeLevels, records, tamper, policyHold, freshness, gates, grants, witnesses, disclosure, admission,
+    killswitch, discovery, scMonitor, scReplicate, scWorm, scBreaker, scDial, scApproval, scIncident, scModel };
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  document.querySelectorAll(".stage").forEach(fig => {
+    const scene = scenes[fig.dataset.scene];
+    const cv = fig.querySelector("canvas"), btn = fig.querySelector(".playbtn"), range = fig.querySelector("input"), big = fig.querySelector(".bigbtn");
+    big.addEventListener("click", () => { const on = fig.classList.toggle("big"); document.body.classList.toggle("noscroll", on); big.textContent = on ? "Close" : "Larger"; });
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    cv.width = W * dpr; cv.height = H * dpr;
+    const c = cv.getContext("2d");
+    let t = 0, playing = false, last = 0, started = false;
+    const render = () => {
+      c.setTransform(dpr, 0, 0, dpr, 0, 0); c.fillStyle = BG; c.fillRect(0, 0, W, H);
+      scene.draw(c, t); range.value = Math.round(t / scene.dur * 1000);
+      btn.textContent = playing ? "Pause" : t >= scene.dur ? "Replay" : "Play";
+    };
+    const tick = now => {
+      if (!playing) return;
+      t = Math.min(scene.dur, t + (now - last) / 1000); last = now;
+      if (t >= scene.dur) playing = false;
+      render(); if (playing) requestAnimationFrame(tick);
+    };
+    const play = () => { if (t >= scene.dur) t = 0; playing = true; started = true; last = performance.now(); requestAnimationFrame(tick); };
+    btn.addEventListener("click", () => { playing ? (playing = false, render()) : play(); });
+    range.addEventListener("input", () => { playing = false; t = range.value / 1000 * scene.dur; render(); });
+    document.fonts.ready.then(() => {
+      if (!started && range.value === "0") { t = reduce ? scene.dur : 0; render(); }
+      if (!reduce) new IntersectionObserver((es, ob) => {
+        es.forEach(e => { if (e.isIntersecting && !started) { play(); ob.disconnect(); } });
+      }, { threshold: 0.6 }).observe(fig);
+    });
+  });
+})();
+
+</script>
+</body>
+</html>
