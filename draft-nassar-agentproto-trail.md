@@ -506,31 +506,32 @@ at once.
 
 ## Dialogs {#dialogs}
 
-Agent interactions are often grouped into dialogs: a shared context,
-named by an identifier and a generation, that several agents open,
-join, update, and leave {{PACE}}. TRAIL does not manage dialogs. It
-records the actions taken inside them, so that those records can be
-correlated and the dialog's own changes are witnessed:
+Agent interactions are grouped into dialogs: the correlated sequence of
+interactions among participants over the course of a task, named by a
+dialog identifier and a generation and managed by a controller
+{{PACE}}. TRAIL does not manage dialogs. It records the actions taken
+inside them:
 
 * Every Action Record for an action inside a dialog carries the dialog
-  identifier and generation ({{payload}}). Records of all participants
-  can be correlated across cells and operators.
+  identifier and the generation the sender last knew ({{payload}}).
+  Records of all participants can then be correlated across cells and
+  operators.
 
-* Dialog lifecycle operations (OPEN, ACCEPT, UPDATE, REVOKE, TERMINATE)
-  are consequential actions and SHOULD be recorded. Changes to dialog
+* Dialog control operations that change the dialog or stop work are
+  consequential actions and SHOULD be recorded. Changes to dialog
   membership are then witnessed.
 
-* A hold is applied by the edge regardless of dialog state. When a hold
-  stops a participant, the dialog controller SHOULD follow with REVOKE,
-  and the edge MUST keep applying the hold until it is lifted.
+* A hold is applied by the edge regardless of dialog state. It does
+  not depend on the dialog's controller.
 
-* Where a dialog requires confirmation or evidence of approval for a
-  high-risk operation, a TRAIL gate approval ({{gates}}) is a suitable
-  format.
+* Where a dialog requires evidence of approval for a high-risk
+  operation, a TRAIL approval record ({{gates}}) is that evidence.
 
-* Dialog identifiers appear only inside signed payloads, never in TRAIL
-  namespaces or resource paths, so relays and caches do not learn
-  dialog membership from names.
+* TRAIL namespaces never contain dialog identifiers. A binding that
+  puts them in its own track names, as PACE does, protects them with
+  its own relay authorization.
+
+{{pace}} maps these rules onto PACE.
 
 ## Why MOQT {#why-moqt}
 
@@ -805,8 +806,8 @@ state snapshot, which only authorized parties can read
 ({{authorization}}).
 
 Call Objects stay on their dialog tracks, for example
-("pace", "agents", {agent-id}, {dialog-id}, "a2a", "task") -- {task}
-{{PACE}}. Media stays on its dialog media tracks.
+("pace", "dialogs", {dialog-id}, {agent-id}, "a2a", "task") --
+{task-id} {{PACE}}. Media stays on its dialog media tracks.
 
 An authority sees the whole swarm with one SUBSCRIBE_TRACKS on
 ("trail", S), or one party with SUBSCRIBE_TRACKS on ("trail", S, P).
@@ -1020,37 +1021,83 @@ for any TRAIL check.
 
 ## PACE {#pace}
 
+### Layering {#pace-layers}
+
+TRAIL is not a layer of the PACE stack. It runs at the edge, beside
+PACE. It attaches an Action Record to each PACE Object the edge
+publishes, and it keeps its own tracks under ("trail", S, P) on the
+same MOQT relays.
+
+~~~ ascii-art
++------------------------------------+  +------------------------+
+| Application protocols              |  | TRAIL at the edge      |
+| (A2A, MCP, ...)                    |  |                        |
++------------------------------------+  | records each message,  |
+| PACE dialog management             |  | with dialog-ref        |
+| dialog-id, generation, lifecycle   |  |                        |
++------------------------------------+  | TRAIL_RECORD on each   |
+| PACE MOQT binding                  |  | dialog track Object    |
+| ("pace","dialogs",D,agent) tracks  |  +------------------------+
++------------------------------------+  | TRAIL tracks           |
+| MOQT: relays, namespaces, C4M      |  | ("trail",S,P): records,|
++------------------------------------+  | state, to              |
+| QUIC / WebTransport                |  +------------------------+
++------------------------------------+
+~~~
+{: #fig-pace-layers title="TRAIL beside the PACE layers"}
+
+PACE correlates a dialog and manages its lifecycle. TRAIL proves what
+each participant did in it and enforces rules at the edge. PACE
+defines no audit data structures; TRAIL supplies them, keyed by the
+PACE dialog identifier.
+
+| Concern | PACE | TRAIL |
+|---|---|---|
+| Correlation | dialog-id and generation | dialog-ref in each signed record |
+| Sender authentication | credentials in control messages; mechanism chosen by the deployment | TRAIL_RECORD signs every Object, control and content |
+| Records | None | Action Records in witnessed trails |
+| Stopping a participant | REVOKE, sent by the controller | Hold, issued by an authority and applied at the edge |
+| Stopping work | CANCEL and CANCEL_ACK | Records both; require-gate stops work before it starts |
+| Approval evidence | Required for high-risk operations; format open | Approval record |
+| Lost contact | Suspend actions that depend on an unconfirmed context change | Freshness rules pause the edge |
+| Relay authorization | C4M scopes per dialog | C4M scopes per party prefix, with the same key |
+{: #tab-pace-layers title="Division of work between PACE and TRAIL"}
+
+### Mapping
+
 Dialog tracks:
 : Call Objects stay on the participant's dialog tracks, for example
-  ("pace", "agents", {agent-id}, {dialog-id}, "a2a", "task") --
+  ("pace", "dialogs", {dialog-id}, {agent-id}, "a2a", "task") --
   {task-id}. TRAIL tracks are separate, under ("trail", S, P). The PACE
-  agent-id and dialog-id never appear in TRAIL namespaces; they appear
-  only inside signed records.
+  dialog-id and agent-id never appear in TRAIL namespaces.
 
 Dialog context:
 : Every record for an Object on a dialog track carries dialog-ref with
-  the PACE dialog-id and the generation the sender last knew.
+  the PACE dialog-id and the generation the sender last knew. These
+  are the values of the dialog reference that the application message
+  carries under `org.ietf.agentproto/dialog-context`. A receiving edge
+  MUST refuse a call whose dialog reference and dialog-ref differ.
 
 Control operations:
-: Each object on a participant's ctrl track (OPEN, ACCEPT, REJECT,
-  UPDATE, JOIN_REQUEST, LEAVE, REVOKE, TERMINATE) SHOULD carry a
-  lifecycle record. PACE requires that deployments that do not trust
-  every relay provide object-level sender authentication for ctrl
-  objects, and notes that Secure Objects does not provide it.
-  TRAIL_RECORD provides it, and the trail makes changes to dialog
-  membership witnessed.
+: Each control message on a participant's ctrl track that changes the
+  dialog or stops work (OPEN, ACCEPT, REJECT, UPDATE, JOIN_REQUEST,
+  LEAVE, REVOKE, TERMINATE, CANCEL, and CANCEL_ACK) SHOULD carry a
+  lifecycle record. STATE_REQUEST, STATE, and ERROR MAY omit it. PACE
+  requires a participant to authenticate the sender of each operation
+  before applying it, and relays terminate TLS on each hop. TRAIL_RECORD
+  authenticates each control Object end to end, and the trail makes
+  changes to dialog membership witnessed.
 
-Envelope:
-: The PACE envelope wraps the application payload. TRAIL_RECORD is an
-  Object Property outside the payload. payload-hash covers the full
-  Object payload, envelope included.
+Payload:
+: PACE carries each message as the Object payload, with no PACE
+  header. payload-hash covers the whole Object payload.
 
 Credentials:
-: Identity assertions, Transaction Tokens, and SD-Card presentations
+: Identity assertions, authorization proofs, and SD-Card presentations
   travel in the PACE credentials member, as PACE specifies. The record
-  carries their hashes in context-hashes. An SD-Card key binding JWT is
-  per-verifier, so it belongs in credentials on OPEN, ACCEPT, or
-  JOIN_REQUEST, never on the cached card track.
+  carries their hashes in context-hashes. A key-bound presentation is
+  bound to a nonce from the peer, so it travels on ACCEPT, UPDATE, or
+  JOIN_REQUEST, never on the card track.
 
 Confirmation and evidence:
 : Where PACE lets a peer require evidence of approval for a high-risk
@@ -1058,18 +1105,32 @@ Confirmation and evidence:
   receiving edge finds it as a cite of type approval in the sender's
   record.
 
-Holds and REVOKE:
-: A hold stops matching actions at the edge regardless of dialog state.
-  When a hold stops a participant, the controller SHOULD follow with
-  REVOKE so that the dialog state matches, and the edge keeps applying
-  the hold until it is lifted.
+Holds, REVOKE, and CANCEL:
+: When a hold stops a participant, the controller SHOULD follow with
+  REVOKE so that the dialog context matches, and the edge MUST keep
+  applying the hold until it is lifted. An edge that holds work already
+  in progress SHOULD send CANCEL for it, so that peers stop work they
+  started for the held agent. A CANCEL_ACK with outcome `irreversible`
+  is recorded like any other control message, so the trail shows which
+  actions took effect before the stop.
+
+Delegated dialogs:
+: A dialog opened to carry out delegated work lists its parents in
+  parent_dialog_ids. The lifecycle record of OPEN carries the full
+  dialog context, so the trails show which dialogs descend from which.
 
 Discovery:
-: The PACE card track and TRAIL state track are separate. A cell's
+: The PACE card track and the TRAIL state track are separate. A cell's
   state MAY include the issuer-signed SD-Card that the agent also
   publishes on its card track, so that a receiver can check capability
   claims and key binding from the same subscription it uses for the
   edge's credentials.
+
+Revocation at the relay:
+: PACE withdraws a revoked participant's relay authorization, for
+  example by refusing C4M revalidation. A hold at the edge stops the
+  same participant independently of the relay, so either one is enough
+  to stop it.
 
 ## MCP over MOQT
 
@@ -1729,6 +1790,8 @@ the maximum record age they allow, and reject repeats for actions that
 are not idempotent. Over HTTP, receivers MUST also reject a created
 value outside their allowed clock skew. Even when a replay is not
 caught, the call-ref binding means it can only reproduce the same call.
+As PACE requires for its control messages, an edge MUST NOT send a
+call that is not idempotent in QUIC 0-RTT data.
 
 ## Denial of Service {#dos}
 
@@ -1776,9 +1839,11 @@ A system that can prove what every agent did can also show what every
 person using those agents did. TRAIL follows {{RFC6973}} and limits
 this:
 
-* Namespaces and resource paths contain only rotating pseudonyms. WIMSE
-  identifiers, dialog identifiers, and principals appear only in signed
-  payloads, and sensitive claims are redacted.
+* TRAIL namespaces and resource paths contain only rotating
+  pseudonyms. WIMSE identifiers, dialog identifiers, and principals
+  appear in TRAIL only inside signed payloads, and sensitive claims are
+  redacted. Dialog identifiers that a binding such as PACE puts in its
+  own track names are covered by that binding's privacy rules.
 
 * Trails and state are readable only by authorized parties
   ({{read-access}}).
@@ -1939,7 +2004,8 @@ reviewed this document.
   addition to edges carrying them in their state.
 
 * Extensions needed by further use cases, tracked in the issue
-  tracker: holds that match everything descending from an input,
+  tracker: holds that match everything descending from an input or
+  from a PACE dialog through its parent_dialog_ids,
   gate responses that substitute an action, approvals signed with a
   passkey, records that cite a model server's attestation, and
   admission tokens that meter spend.

@@ -1464,6 +1464,14 @@ not enumerate.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.2">
                 <p id="section-toc.1-1.7.2.2.1"><a href="#section-7.2" class="auto internal xref">7.2</a>.  <a href="#name-pace" class="internal xref">PACE</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.2.2.1">
+                    <p id="section-toc.1-1.7.2.2.2.1.1"><a href="#section-7.2.1" class="auto internal xref">7.2.1</a>.  <a href="#name-layering" class="internal xref">Layering</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.2.2.2">
+                    <p id="section-toc.1-1.7.2.2.2.2.1"><a href="#section-7.2.2" class="auto internal xref">7.2.2</a>.  <a href="#name-mapping" class="internal xref">Mapping</a></p>
+</li>
+                </ul>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.3">
                 <p id="section-toc.1-1.7.2.3.1"><a href="#section-7.3" class="auto internal xref">7.3</a>.  <a href="#name-mcp-over-moqt" class="internal xref">MCP over MOQT</a></p>
@@ -2212,38 +2220,38 @@ at once.<a href="#section-2.2-3" class="pilcrow">¶</a></p>
         <h3 id="name-dialogs">
 <a href="#section-2.3" class="section-number selfRef">2.3. </a><a href="#name-dialogs" class="section-name selfRef">Dialogs</a>
         </h3>
-<p id="section-2.3-1">Agent interactions are often grouped into dialogs: a shared context,
-named by an identifier and a generation, that several agents open,
-join, update, and leave <span>[<a href="#PACE" class="cite xref">PACE</a>]</span>. TRAIL does not manage dialogs. It
-records the actions taken inside them, so that those records can be
-correlated and the dialog's own changes are witnessed:<a href="#section-2.3-1" class="pilcrow">¶</a></p>
+<p id="section-2.3-1">Agent interactions are grouped into dialogs: the correlated sequence of
+interactions among participants over the course of a task, named by a
+dialog identifier and a generation and managed by a controller
+<span>[<a href="#PACE" class="cite xref">PACE</a>]</span>. TRAIL does not manage dialogs. It records the actions taken
+inside them:<a href="#section-2.3-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-2.3-2.1">
             <p id="section-2.3-2.1.1">Every Action Record for an action inside a dialog carries the dialog
-identifier and generation (<a href="#payload" class="auto internal xref">Section 3.2</a>). Records of all participants
-can be correlated across cells and operators.<a href="#section-2.3-2.1.1" class="pilcrow">¶</a></p>
+identifier and the generation the sender last knew (<a href="#payload" class="auto internal xref">Section 3.2</a>).
+Records of all participants can then be correlated across cells and
+operators.<a href="#section-2.3-2.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-2.3-2.2">
-            <p id="section-2.3-2.2.1">Dialog lifecycle operations (OPEN, ACCEPT, UPDATE, REVOKE, TERMINATE)
-are consequential actions and SHOULD be recorded. Changes to dialog
+            <p id="section-2.3-2.2.1">Dialog control operations that change the dialog or stop work are
+consequential actions and SHOULD be recorded. Changes to dialog
 membership are then witnessed.<a href="#section-2.3-2.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-2.3-2.3">
-            <p id="section-2.3-2.3.1">A hold is applied by the edge regardless of dialog state. When a hold
-stops a participant, the dialog controller SHOULD follow with REVOKE,
-and the edge MUST keep applying the hold until it is lifted.<a href="#section-2.3-2.3.1" class="pilcrow">¶</a></p>
+            <p id="section-2.3-2.3.1">A hold is applied by the edge regardless of dialog state. It does
+not depend on the dialog's controller.<a href="#section-2.3-2.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-2.3-2.4">
-            <p id="section-2.3-2.4.1">Where a dialog requires confirmation or evidence of approval for a
-high-risk operation, a TRAIL gate approval (<a href="#gates" class="auto internal xref">Section 10.1</a>) is a suitable
-format.<a href="#section-2.3-2.4.1" class="pilcrow">¶</a></p>
+            <p id="section-2.3-2.4.1">Where a dialog requires evidence of approval for a high-risk
+operation, a TRAIL approval record (<a href="#gates" class="auto internal xref">Section 10.1</a>) is that evidence.<a href="#section-2.3-2.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-2.3-2.5">
-            <p id="section-2.3-2.5.1">Dialog identifiers appear only inside signed payloads, never in TRAIL
-namespaces or resource paths, so relays and caches do not learn
-dialog membership from names.<a href="#section-2.3-2.5.1" class="pilcrow">¶</a></p>
+            <p id="section-2.3-2.5.1">TRAIL namespaces never contain dialog identifiers. A binding that
+puts them in its own track names, as PACE does, protects them with
+its own relay authorization.<a href="#section-2.3-2.5.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
+<p id="section-2.3-3"><a href="#pace" class="auto internal xref">Section 7.2</a> maps these rules onto PACE.<a href="#section-2.3-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="why-moqt">
@@ -2622,8 +2630,8 @@ The mapping from a pseudonym to a WIMSE identifier is in that party's
 state snapshot, which only authorized parties can read
 (<a href="#authorization" class="auto internal xref">Section 12</a>).<a href="#section-5.2-3" class="pilcrow">¶</a></p>
 <p id="section-5.2-4">Call Objects stay on their dialog tracks, for example
-("pace", "agents", {agent-id}, {dialog-id}, "a2a", "task") -- {task}
-<span>[<a href="#PACE" class="cite xref">PACE</a>]</span>. Media stays on its dialog media tracks.<a href="#section-5.2-4" class="pilcrow">¶</a></p>
+("pace", "dialogs", {dialog-id}, {agent-id}, "a2a", "task") --
+{task-id} <span>[<a href="#PACE" class="cite xref">PACE</a>]</span>. Media stays on its dialog media tracks.<a href="#section-5.2-4" class="pilcrow">¶</a></p>
 <p id="section-5.2-5">An authority sees the whole swarm with one SUBSCRIBE_TRACKS on
 ("trail", S), or one party with SUBSCRIBE_TRACKS on ("trail", S, P).
 Because a cell whose records track is not published under ("trail", S)
@@ -2993,75 +3001,198 @@ for any TRAIL check.<a href="#section-7.1-2" class="pilcrow">¶</a></p>
         <h3 id="name-pace">
 <a href="#section-7.2" class="section-number selfRef">7.2. </a><a href="#name-pace" class="section-name selfRef">PACE</a>
         </h3>
-<span class="break"></span><dl class="dlParallel" id="section-7.2-1">
-          <dt id="section-7.2-1.1">Dialog tracks:</dt>
-          <dd style="margin-left: 1.5em" id="section-7.2-1.2">
-            <p id="section-7.2-1.2.1">Call Objects stay on the participant's dialog tracks, for example
-("pace", "agents", {agent-id}, {dialog-id}, "a2a", "task") --
+<div id="pace-layers">
+<section id="section-7.2.1">
+          <h4 id="name-layering">
+<a href="#section-7.2.1" class="section-number selfRef">7.2.1. </a><a href="#name-layering" class="section-name selfRef">Layering</a>
+          </h4>
+<p id="section-7.2.1-1">TRAIL is not a layer of the PACE stack. It runs at the edge, beside
+PACE. It attaches an Action Record to each PACE Object the edge
+publishes, and it keeps its own tracks under ("trail", S, P) on the
+same MOQT relays.<a href="#section-7.2.1-1" class="pilcrow">¶</a></p>
+<span id="name-trail-beside-the-pace-layer"></span><div id="fig-pace-layers">
+<figure id="figure-5">
+            <div class="alignLeft art-ascii-art art-text artwork" id="section-7.2.1-2.1">
+<pre>
++------------------------------------+  +------------------------+
+| Application protocols              |  | TRAIL at the edge      |
+| (A2A, MCP, ...)                    |  |                        |
++------------------------------------+  | records each message,  |
+| PACE dialog management             |  | with dialog-ref        |
+| dialog-id, generation, lifecycle   |  |                        |
++------------------------------------+  | TRAIL_RECORD on each   |
+| PACE MOQT binding                  |  | dialog track Object    |
+| ("pace","dialogs",D,agent) tracks  |  +------------------------+
++------------------------------------+  | TRAIL tracks           |
+| MOQT: relays, namespaces, C4M      |  | ("trail",S,P): records,|
++------------------------------------+  | state, to              |
+| QUIC / WebTransport                |  +------------------------+
++------------------------------------+
+</pre>
+</div>
+<figcaption><a href="#figure-5" class="selfRef">Figure 5</a>:
+<a href="#name-trail-beside-the-pace-layer" class="selfRef">TRAIL beside the PACE layers</a>
+            </figcaption></figure>
+</div>
+<p id="section-7.2.1-3">PACE correlates a dialog and manages its lifecycle. TRAIL proves what
+each participant did in it and enforces rules at the edge. PACE
+defines no audit data structures; TRAIL supplies them, keyed by the
+PACE dialog identifier.<a href="#section-7.2.1-3" class="pilcrow">¶</a></p>
+<span id="name-division-of-work-between-pa"></span><div id="tab-pace-layers">
+<table class="center" id="table-5">
+            <caption>
+<a href="#table-5" class="selfRef">Table 5</a>:
+<a href="#name-division-of-work-between-pa" class="selfRef">Division of work between PACE and TRAIL</a>
+            </caption>
+<thead>
+              <tr>
+                <th class="text-left" rowspan="1" colspan="1">Concern</th>
+                <th class="text-left" rowspan="1" colspan="1">PACE</th>
+                <th class="text-left" rowspan="1" colspan="1">TRAIL</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">Correlation</td>
+                <td class="text-left" rowspan="1" colspan="1">dialog-id and generation</td>
+                <td class="text-left" rowspan="1" colspan="1">dialog-ref in each signed record</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">Sender authentication</td>
+                <td class="text-left" rowspan="1" colspan="1">credentials in control messages; mechanism chosen by the deployment</td>
+                <td class="text-left" rowspan="1" colspan="1">TRAIL_RECORD signs every Object, control and content</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">Records</td>
+                <td class="text-left" rowspan="1" colspan="1">None</td>
+                <td class="text-left" rowspan="1" colspan="1">Action Records in witnessed trails</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">Stopping a participant</td>
+                <td class="text-left" rowspan="1" colspan="1">REVOKE, sent by the controller</td>
+                <td class="text-left" rowspan="1" colspan="1">Hold, issued by an authority and applied at the edge</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">Stopping work</td>
+                <td class="text-left" rowspan="1" colspan="1">CANCEL and CANCEL_ACK</td>
+                <td class="text-left" rowspan="1" colspan="1">Records both; require-gate stops work before it starts</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">Approval evidence</td>
+                <td class="text-left" rowspan="1" colspan="1">Required for high-risk operations; format open</td>
+                <td class="text-left" rowspan="1" colspan="1">Approval record</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">Lost contact</td>
+                <td class="text-left" rowspan="1" colspan="1">Suspend actions that depend on an unconfirmed context change</td>
+                <td class="text-left" rowspan="1" colspan="1">Freshness rules pause the edge</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">Relay authorization</td>
+                <td class="text-left" rowspan="1" colspan="1">C4M scopes per dialog</td>
+                <td class="text-left" rowspan="1" colspan="1">C4M scopes per party prefix, with the same key</td>
+              </tr>
+            </tbody>
+          </table>
+</div>
+</section>
+</div>
+<div id="mapping">
+<section id="section-7.2.2">
+          <h4 id="name-mapping">
+<a href="#section-7.2.2" class="section-number selfRef">7.2.2. </a><a href="#name-mapping" class="section-name selfRef">Mapping</a>
+          </h4>
+<span class="break"></span><dl class="dlParallel" id="section-7.2.2-1">
+            <dt id="section-7.2.2-1.1">Dialog tracks:</dt>
+            <dd style="margin-left: 1.5em" id="section-7.2.2-1.2">
+              <p id="section-7.2.2-1.2.1">Call Objects stay on the participant's dialog tracks, for example
+("pace", "dialogs", {dialog-id}, {agent-id}, "a2a", "task") --
 {task-id}. TRAIL tracks are separate, under ("trail", S, P). The PACE
-agent-id and dialog-id never appear in TRAIL namespaces; they appear
-only inside signed records.<a href="#section-7.2-1.2.1" class="pilcrow">¶</a></p>
+dialog-id and agent-id never appear in TRAIL namespaces.<a href="#section-7.2.2-1.2.1" class="pilcrow">¶</a></p>
 </dd>
-          <dd class="break"></dd>
-<dt id="section-7.2-1.3">Dialog context:</dt>
-          <dd style="margin-left: 1.5em" id="section-7.2-1.4">
-            <p id="section-7.2-1.4.1">Every record for an Object on a dialog track carries dialog-ref with
-the PACE dialog-id and the generation the sender last knew.<a href="#section-7.2-1.4.1" class="pilcrow">¶</a></p>
+            <dd class="break"></dd>
+<dt id="section-7.2.2-1.3">Dialog context:</dt>
+            <dd style="margin-left: 1.5em" id="section-7.2.2-1.4">
+              <p id="section-7.2.2-1.4.1">Every record for an Object on a dialog track carries dialog-ref with
+the PACE dialog-id and the generation the sender last knew. These
+are the values of the dialog reference that the application message
+carries under <code>org.ietf.agentproto/dialog-context</code>. A receiving edge
+MUST refuse a call whose dialog reference and dialog-ref differ.<a href="#section-7.2.2-1.4.1" class="pilcrow">¶</a></p>
 </dd>
-          <dd class="break"></dd>
-<dt id="section-7.2-1.5">Control operations:</dt>
-          <dd style="margin-left: 1.5em" id="section-7.2-1.6">
-            <p id="section-7.2-1.6.1">Each object on a participant's ctrl track (OPEN, ACCEPT, REJECT,
-UPDATE, JOIN_REQUEST, LEAVE, REVOKE, TERMINATE) SHOULD carry a
-lifecycle record. PACE requires that deployments that do not trust
-every relay provide object-level sender authentication for ctrl
-objects, and notes that Secure Objects does not provide it.
-TRAIL_RECORD provides it, and the trail makes changes to dialog
-membership witnessed.<a href="#section-7.2-1.6.1" class="pilcrow">¶</a></p>
+            <dd class="break"></dd>
+<dt id="section-7.2.2-1.5">Control operations:</dt>
+            <dd style="margin-left: 1.5em" id="section-7.2.2-1.6">
+              <p id="section-7.2.2-1.6.1">Each control message on a participant's ctrl track that changes the
+dialog or stops work (OPEN, ACCEPT, REJECT, UPDATE, JOIN_REQUEST,
+LEAVE, REVOKE, TERMINATE, CANCEL, and CANCEL_ACK) SHOULD carry a
+lifecycle record. STATE_REQUEST, STATE, and ERROR MAY omit it. PACE
+requires a participant to authenticate the sender of each operation
+before applying it, and relays terminate TLS on each hop. TRAIL_RECORD
+authenticates each control Object end to end, and the trail makes
+changes to dialog membership witnessed.<a href="#section-7.2.2-1.6.1" class="pilcrow">¶</a></p>
 </dd>
-          <dd class="break"></dd>
-<dt id="section-7.2-1.7">Envelope:</dt>
-          <dd style="margin-left: 1.5em" id="section-7.2-1.8">
-            <p id="section-7.2-1.8.1">The PACE envelope wraps the application payload. TRAIL_RECORD is an
-Object Property outside the payload. payload-hash covers the full
-Object payload, envelope included.<a href="#section-7.2-1.8.1" class="pilcrow">¶</a></p>
+            <dd class="break"></dd>
+<dt id="section-7.2.2-1.7">Payload:</dt>
+            <dd style="margin-left: 1.5em" id="section-7.2.2-1.8">
+              <p id="section-7.2.2-1.8.1">PACE carries each message as the Object payload, with no PACE
+header. payload-hash covers the whole Object payload.<a href="#section-7.2.2-1.8.1" class="pilcrow">¶</a></p>
 </dd>
-          <dd class="break"></dd>
-<dt id="section-7.2-1.9">Credentials:</dt>
-          <dd style="margin-left: 1.5em" id="section-7.2-1.10">
-            <p id="section-7.2-1.10.1">Identity assertions, Transaction Tokens, and SD-Card presentations
+            <dd class="break"></dd>
+<dt id="section-7.2.2-1.9">Credentials:</dt>
+            <dd style="margin-left: 1.5em" id="section-7.2.2-1.10">
+              <p id="section-7.2.2-1.10.1">Identity assertions, authorization proofs, and SD-Card presentations
 travel in the PACE credentials member, as PACE specifies. The record
-carries their hashes in context-hashes. An SD-Card key binding JWT is
-per-verifier, so it belongs in credentials on OPEN, ACCEPT, or
-JOIN_REQUEST, never on the cached card track.<a href="#section-7.2-1.10.1" class="pilcrow">¶</a></p>
+carries their hashes in context-hashes. A key-bound presentation is
+bound to a nonce from the peer, so it travels on ACCEPT, UPDATE, or
+JOIN_REQUEST, never on the card track.<a href="#section-7.2.2-1.10.1" class="pilcrow">¶</a></p>
 </dd>
-          <dd class="break"></dd>
-<dt id="section-7.2-1.11">Confirmation and evidence:</dt>
-          <dd style="margin-left: 1.5em" id="section-7.2-1.12">
-            <p id="section-7.2-1.12.1">Where PACE lets a peer require evidence of approval for a high-risk
+            <dd class="break"></dd>
+<dt id="section-7.2.2-1.11">Confirmation and evidence:</dt>
+            <dd style="margin-left: 1.5em" id="section-7.2.2-1.12">
+              <p id="section-7.2.2-1.12.1">Where PACE lets a peer require evidence of approval for a high-risk
 operation, a TRAIL approval record (<a href="#gates" class="auto internal xref">Section 10.1</a>) is the evidence. The
 receiving edge finds it as a cite of type approval in the sender's
-record.<a href="#section-7.2-1.12.1" class="pilcrow">¶</a></p>
+record.<a href="#section-7.2.2-1.12.1" class="pilcrow">¶</a></p>
 </dd>
-          <dd class="break"></dd>
-<dt id="section-7.2-1.13">Holds and REVOKE:</dt>
-          <dd style="margin-left: 1.5em" id="section-7.2-1.14">
-            <p id="section-7.2-1.14.1">A hold stops matching actions at the edge regardless of dialog state.
-When a hold stops a participant, the controller SHOULD follow with
-REVOKE so that the dialog state matches, and the edge keeps applying
-the hold until it is lifted.<a href="#section-7.2-1.14.1" class="pilcrow">¶</a></p>
+            <dd class="break"></dd>
+<dt id="section-7.2.2-1.13">Holds, REVOKE, and CANCEL:</dt>
+            <dd style="margin-left: 1.5em" id="section-7.2.2-1.14">
+              <p id="section-7.2.2-1.14.1">When a hold stops a participant, the controller SHOULD follow with
+REVOKE so that the dialog context matches, and the edge MUST keep
+applying the hold until it is lifted. An edge that holds work already
+in progress SHOULD send CANCEL for it, so that peers stop work they
+started for the held agent. A CANCEL_ACK with outcome <code>irreversible</code>
+is recorded like any other control message, so the trail shows which
+actions took effect before the stop.<a href="#section-7.2.2-1.14.1" class="pilcrow">¶</a></p>
 </dd>
-          <dd class="break"></dd>
-<dt id="section-7.2-1.15">Discovery:</dt>
-          <dd style="margin-left: 1.5em" id="section-7.2-1.16">
-            <p id="section-7.2-1.16.1">The PACE card track and TRAIL state track are separate. A cell's
+            <dd class="break"></dd>
+<dt id="section-7.2.2-1.15">Delegated dialogs:</dt>
+            <dd style="margin-left: 1.5em" id="section-7.2.2-1.16">
+              <p id="section-7.2.2-1.16.1">A dialog opened to carry out delegated work lists its parents in
+parent_dialog_ids. The lifecycle record of OPEN carries the full
+dialog context, so the trails show which dialogs descend from which.<a href="#section-7.2.2-1.16.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-7.2.2-1.17">Discovery:</dt>
+            <dd style="margin-left: 1.5em" id="section-7.2.2-1.18">
+              <p id="section-7.2.2-1.18.1">The PACE card track and the TRAIL state track are separate. A cell's
 state MAY include the issuer-signed SD-Card that the agent also
 publishes on its card track, so that a receiver can check capability
 claims and key binding from the same subscription it uses for the
-edge's credentials.<a href="#section-7.2-1.16.1" class="pilcrow">¶</a></p>
+edge's credentials.<a href="#section-7.2.2-1.18.1" class="pilcrow">¶</a></p>
 </dd>
-        <dd class="break"></dd>
+            <dd class="break"></dd>
+<dt id="section-7.2.2-1.19">Revocation at the relay:</dt>
+            <dd style="margin-left: 1.5em" id="section-7.2.2-1.20">
+              <p id="section-7.2.2-1.20.1">PACE withdraws a revoked participant's relay authorization, for
+example by refusing C4M revalidation. A hold at the edge stops the
+same participant independently of the relay, so either one is enough
+to stop it.<a href="#section-7.2.2-1.20.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
 </dl>
+</section>
+</div>
 </section>
 </div>
 <div id="mcp-over-moqt">
@@ -3178,7 +3309,7 @@ trail-id.<a href="#section-8.1-2" class="pilcrow">¶</a></p>
 kind checkpoint, signed by the trail's own edge, whose body is a tree
 head:<a href="#section-8.2-1" class="pilcrow">¶</a></p>
 <span id="name-checkpoint-body"></span><div id="fig-tree-head">
-<figure id="figure-5">
+<figure id="figure-6">
           <div class="lang-cddl sourcecode" id="section-8.2-2.1">
 <pre>
 tree-head = [
@@ -3190,7 +3321,7 @@ tree-head = [
 ]
 </pre>
 </div>
-<figcaption><a href="#figure-5" class="selfRef">Figure 5</a>:
+<figcaption><a href="#figure-6" class="selfRef">Figure 6</a>:
 <a href="#name-checkpoint-body" class="selfRef">Checkpoint body</a>
           </figcaption></figure>
 </div>
@@ -3306,7 +3437,7 @@ bound how far a false record can go unnoticed.<a href="#section-8.5-3" class="pi
 (authorities), and its grants (operators). Each snapshot is a
 COSE_Sign1 signed by the party's key, whose payload is:<a href="#section-9.1-1" class="pilcrow">¶</a></p>
 <span id="name-state-snapshot"></span><div id="fig-state">
-<figure id="figure-6">
+<figure id="figure-7">
           <div class="breakable lang-cddl sourcecode" id="section-9.1-2.1">
 <pre>
 trail-state = {
@@ -3361,7 +3492,7 @@ grant = {
 }
 </pre>
 </div>
-<figcaption><a href="#figure-6" class="selfRef">Figure 6</a>:
+<figcaption><a href="#figure-7" class="selfRef">Figure 7</a>:
 <a href="#name-state-snapshot" class="selfRef">State snapshot</a>
           </figcaption></figure>
 </div>
@@ -3392,9 +3523,9 @@ action because of a hold.<a href="#section-9.1-6" class="pilcrow">¶</a></p>
         </h3>
 <p id="section-9.2-1">Directives differ in when they take effect:<a href="#section-9.2-1" class="pilcrow">¶</a></p>
 <span id="name-how-directives-act-2"></span><div id="tab-directives">
-<table class="center" id="table-5">
+<table class="center" id="table-6">
           <caption>
-<a href="#table-5" class="selfRef">Table 5</a>:
+<a href="#table-6" class="selfRef">Table 6</a>:
 <a href="#name-how-directives-act-2" class="selfRef">How directives act</a>
           </caption>
 <thead>
@@ -3497,7 +3628,7 @@ A require-witness directive, which can also select action classes,
 sets which witnesses must have cosigned, how many of them, and how
 recently. Each limit is set in exactly one place:<a href="#section-9.4-1" class="pilcrow">¶</a></p>
 <span id="name-freshness-budget-and-witnes"></span><div id="fig-budget">
-<figure id="figure-7">
+<figure id="figure-8">
           <div class="lang-cddl sourcecode" id="section-9.4-2.1">
 <pre>
 freshness-budget = {
@@ -3513,7 +3644,7 @@ require-witness = [             ; require-witness value
 ]
 </pre>
 </div>
-<figcaption><a href="#figure-7" class="selfRef">Figure 7</a>:
+<figcaption><a href="#figure-8" class="selfRef">Figure 8</a>:
 <a href="#name-freshness-budget-and-witnes" class="selfRef">Freshness budget and witness requirement</a>
           </figcaption></figure>
 </div>
@@ -3676,9 +3807,9 @@ before approval, and each release is a record in the approver's trail.<a href="#
 <p id="section-11-1">TRAIL defines no new credential, token, delegation, or attestation
 format:<a href="#section-11-1" class="pilcrow">¶</a></p>
 <span id="name-existing-work-used-by-trail"></span><div id="tab-reuse">
-<table class="center" id="table-6">
+<table class="center" id="table-7">
         <caption>
-<a href="#table-6" class="selfRef">Table 6</a>:
+<a href="#table-7" class="selfRef">Table 7</a>:
 <a href="#name-existing-work-used-by-trail" class="selfRef">Existing work used by TRAIL</a>
         </caption>
 <thead>
@@ -3883,9 +4014,9 @@ grant from an operator in the swarm, and every witness named in a
 require-witness directive, MUST be able to obtain read access to the
 trails and state it needs.<a href="#section-12.2-1" class="pilcrow">¶</a></p>
 <span id="name-read-access-per-role"></span><div id="tab-scopes">
-<table class="center" id="table-7">
+<table class="center" id="table-8">
           <caption>
-<a href="#table-7" class="selfRef">Table 7</a>:
+<a href="#table-8" class="selfRef">Table 8</a>:
 <a href="#name-read-access-per-role" class="selfRef">Read access per role</a>
           </caption>
 <thead>
@@ -3970,9 +4101,9 @@ publish.<a href="#section-13-2" class="pilcrow">¶</a></p>
 <a href="#section-14.1" class="section-number selfRef">14.1. </a><a href="#name-sources-of-the-guarantees" class="section-name selfRef">Sources of the Guarantees</a>
         </h3>
 <span id="name-sources-of-trail-guarantees"></span><div id="tab-guarantees">
-<table class="center" id="table-8">
+<table class="center" id="table-9">
           <caption>
-<a href="#table-8" class="selfRef">Table 8</a>:
+<a href="#table-9" class="selfRef">Table 9</a>:
 <a href="#name-sources-of-trail-guarantees" class="selfRef">Sources of TRAIL guarantees</a>
           </caption>
 <thead>
@@ -4091,7 +4222,9 @@ accepted. Receivers MUST keep the identifiers they accept for at least
 the maximum record age they allow, and reject repeats for actions that
 are not idempotent. Over HTTP, receivers MUST also reject a created
 value outside their allowed clock skew. Even when a replay is not
-caught, the call-ref binding means it can only reproduce the same call.<a href="#section-14.4-1" class="pilcrow">¶</a></p>
+caught, the call-ref binding means it can only reproduce the same call.
+As PACE requires for its control messages, an edge MUST NOT send a
+call that is not idempotent in QUIC 0-RTT data.<a href="#section-14.4-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="dos">
@@ -4158,9 +4291,11 @@ person using those agents did. TRAIL follows <span>[<a href="#RFC6973" class="ci
 this:<a href="#section-15-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-15-2.1">
-          <p id="section-15-2.1.1">Namespaces and resource paths contain only rotating pseudonyms. WIMSE
-identifiers, dialog identifiers, and principals appear only in signed
-payloads, and sensitive claims are redacted.<a href="#section-15-2.1.1" class="pilcrow">¶</a></p>
+          <p id="section-15-2.1.1">TRAIL namespaces and resource paths contain only rotating
+pseudonyms. WIMSE identifiers, dialog identifiers, and principals
+appear in TRAIL only inside signed payloads, and sensitive claims are
+redacted. Dialog identifiers that a binding such as PACE puts in its
+own track names are covered by that binding's privacy rules.<a href="#section-15-2.1.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-15-2.2">
           <p id="section-15-2.2.1">Trails and state are readable only by authorized parties
@@ -4213,9 +4348,9 @@ type Item, and this document as reference.<a href="#section-16.1-1" class="pilcr
 Properties" registry. Until a value is assigned, implementations can
 use a value from the application-specific range 0x3800 to 0x3FFF.<a href="#section-16.2-1" class="pilcrow">¶</a></p>
 <span id="name-moq-property"></span><div id="tab-iana-moq">
-<table class="center" id="table-9">
+<table class="center" id="table-10">
           <caption>
-<a href="#table-9" class="selfRef">Table 9</a>:
+<a href="#table-10" class="selfRef">Table 10</a>:
 <a href="#name-moq-property" class="selfRef">MOQ Property</a>
           </caption>
 <thead>
@@ -4255,7 +4390,7 @@ use a value from the application-specific range 0x3800 to 0x3FFF.<a href="#secti
 <p id="section-16.4-1">IANA is requested to create the registries "TRAIL Record Kinds",
 "TRAIL Outcomes", "TRAIL Call Reference Types", "TRAIL Directive
 Types", and "TRAIL Cite Types", with the initial values in
-<a href="#fig-record" class="auto internal xref">Figure 2</a> and <a href="#fig-state" class="auto internal xref">Figure 6</a> and a Specification Required policy.<a href="#section-16.4-1" class="pilcrow">¶</a></p>
+<a href="#fig-record" class="auto internal xref">Figure 2</a> and <a href="#fig-state" class="auto internal xref">Figure 7</a> and a Specification Required policy.<a href="#section-16.4-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -4640,9 +4775,9 @@ IETF 126, as recorded in the draft minutes <span>[<a href="#AGENTPROTO-126" clas
 minutes are cited for the requirements only; their speakers have not
 reviewed this document.<a href="#appendix-C-1" class="pilcrow">¶</a></p>
 <span id="name-bof-requirements-and-trail-"></span><div id="tab-requirements">
-<table class="center" id="table-10">
+<table class="center" id="table-11">
         <caption>
-<a href="#table-10" class="selfRef">Table 10</a>:
+<a href="#table-11" class="selfRef">Table 11</a>:
 <a href="#name-bof-requirements-and-trail-" class="selfRef">BoF requirements and TRAIL mechanisms</a>
         </caption>
 <thead>
@@ -4699,7 +4834,8 @@ addition to edges carrying them in their state.<a href="#appendix-D-1.3.1" class
 </li>
         <li class="normal" id="appendix-D-1.4">
           <p id="appendix-D-1.4.1">Extensions needed by further use cases, tracked in the issue
-tracker: holds that match everything descending from an input,
+tracker: holds that match everything descending from an input or
+from a PACE dialog through its parent_dialog_ids,
 gate responses that substitute an action, approvals signed with a
 passkey, records that cite a model server's attestation, and
 admission tokens that meter spend.<a href="#appendix-D-1.4.1" class="pilcrow">¶</a></p>
