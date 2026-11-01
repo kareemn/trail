@@ -36,7 +36,7 @@ Operators run agents in sandboxes on machines. The edge is where traffic leaves 
 
 ![Animation: the pieces of a TRAIL deployment labeled with their draft terms](visuals/01-key-terms.gif)
 
-*In the draft: terminology (1.7); architecture (2)*
+*In the draft: terminology (1.6); architecture (2)*
 
 ### The draft’s terms, in plain words
 
@@ -50,11 +50,13 @@ Operators run agents in sandboxes on machines. The edge is where traffic leaves 
 | agent, principal, operator | The AI; the person it acts for; the company running it. |
 | Action Record | The signed record of one action, written to the trail before the call leaves. |
 | trail, checkpoint | An edge’s records in order; a signed summary closing each stretch of it. |
+| epoch, archive | The stretch of a trail that one checkpoint closes; a service that stores trails and serves them to parties allowed to read them. |
 | evidence plane | Where trails, state, and directed records are published: a MoQ relay or HTTP servers. |
 | state | What each party republishes on a schedule: an authority’s rules, an operator’s grants, an edge’s level. |
 | directive | A rule in an authority’s state: `policy`, `hold`, `freshness-budget`, `require-gate`, `require-witness`, `require-level`, `require-admission`, `require-record`. |
-| directed record | A record published for one party, which can be encrypted to it: gate requests, approvals, disclosures. |
+| directed record | A record published for one party, which can be encrypted to it: gate requests, approvals, disclosures, cosignatures. |
 | grant | A right an operator gives an authority: which directives it may issue, for what, and which fields it may read. |
+| action class, data class | A number that groups actions by impact, such as payments; a label on a hidden field, such as an amount. |
 | authority, witness | Sets rules within its grants; checks trails are complete and cosigns them. |
 | admission issuer, admission token | A party that hands out a fixed number of tokens; the token an agent’s records cite. |
 
@@ -164,45 +166,45 @@ Eight scenarios built from the blocks above. Each lists the blocks it uses. Part
 
 ### 1. An independent monitor
 
-Today a monitor runs inside the agent’s machine; if it crashes, the agent keeps going. Here Monitor M is outside both operators and is both an authority and a witness, so its silence stops Agent A.
-
 **Verdict:** Works, with limits
+
+Today a monitor runs inside the agent’s machine; if it crashes, the agent keeps going. Here Monitor M is outside both operators and is both an authority and a witness, so its silence stops Agent A.
 
 ![Animation: a crashed monitor stopping an agent](visuals/14-monitor.gif)
 
 **Uses:** [freshness-budget](#an-authoritys-rules-freshness-budget), [witnesses and authorities](#witnesses-and-authorities-do-different-jobs)
 
-**Missing:** letting the monitor replace an action rather than only block or approve it (draft Appendix D.2). Freshness shows the monitor is reachable and receiving, not that it reviewed anything.
+**Missing:** letting the monitor replace an action rather than only block or approve it (draft Open Issues, Appendix D). Freshness shows the monitor is reachable and receiving, not that it reviewed anything.
 
 ### 2. Limiting how many agents can run
 
-An agent copies itself. The copy has no admission token, so TRAIL peers refuse it. A server that doesn’t run TRAIL still answers, but the copy’s calls are in A’s trail.
-
 **Verdict:** Works, with limits
+
+An agent copies itself. The copy has no admission token, so TRAIL peers refuse it. A server that doesn’t run TRAIL still answers, but the copy’s calls are in A’s trail.
 
 ![Animation: a copy without a token refused by a TRAIL peer](visuals/15-replicate.gif)
 
 **Uses:** [admission tokens](#admission-tokens-a-cap-across-machines), [records on both sides](#every-call-leaves-records-on-both-sides)
 
-**Missing:** metered tokens for spend and API budgets (Appendix D.5).
+**Missing:** metered tokens for spend and API budgets (Open Issues, Appendix D).
 
 ### 3. Stopping a prompt-injection worm
 
-An injection spreads from Agent A to Agent B at another company. Records cite what was received, so Regulator R can follow the path and hold both agents by name.
-
 **Verdict:** Partly works
+
+An injection spreads from Agent A to Agent B at another company. Records cite what was received, so Regulator R can follow the path and hold both agents by name.
 
 ![Animation: an injection spreading and a hold stopping both agents](visuals/16-worm.gif)
 
 **Uses:** [records on both sides](#every-call-leaves-records-on-both-sides), [policy and hold](#an-authoritys-rules-policy-and-hold), [grants](#grants-what-an-operator-lets-an-authority-do)
 
-**Missing:** a hold that matches everything descending from an input (Appendix D.1). The edge sees what an agent received, not what the model used.
+**Missing:** a hold that matches everything descending from an input (Open Issues, Appendix D). The edge sees what an agent received, not what the model used.
 
 ### 4. Cutting off a compromised tool server
 
-One hold from Security team T naming the server stops every company that granted T that right.
-
 **Verdict:** Works
+
+One hold from Security team T naming the server stops every company that granted T that right.
 
 ![Animation: one hold stopping calls to a compromised server](visuals/17-breaker.gif)
 
@@ -210,9 +212,9 @@ One hold from Security team T naming the server stops every company that granted
 
 ### 5. Allowing less when oversight lags
 
-Each kind of action needs a more or less recent cosignature. As Notary N falls behind, risky actions stop first.
-
 **Verdict:** Works
+
+Each kind of action needs a more or less recent cosignature. As Notary N falls behind, risky actions stop first.
 
 ![Animation: risky actions blocked as the notary falls behind](visuals/18-dial.gif)
 
@@ -220,21 +222,21 @@ Each kind of action needs a more or less recent cosignature. As Notary N falls b
 
 ### 6. A person at another company approves an action
 
-Bank K is an authority with a gate on wires to it. Officer O approves with a passkey; the wire’s record cites the approval.
-
 **Verdict:** Needs one addition
+
+Bank K is an authority with a gate on wires to it. Officer O approves with a passkey; the wire’s record cites the approval.
 
 ![Animation: a wire held until an officer at the bank approves it](visuals/19-approval.gif)
 
 **Uses:** [gates and directed records](#an-authoritys-rules-require-gate-using-directed-records), [grants](#grants-what-an-operator-lets-an-authority-do)
 
-**Missing:** how a passkey (WebAuthn) signature becomes an approval record (Appendix D.3).
+**Missing:** how a passkey (WebAuthn) signature becomes an approval record (Open Issues, Appendix D).
 
 ### 7. Reporting an incident without customer data
 
-Safety institute S checks a record against the cosigned trail and sees what happened, without seeing the customer.
-
 **Verdict:** Works, with limits
+
+Safety institute S checks a record against the cosigned trail and sees what happened, without seeing the customer.
 
 ![Animation: an incident report that verifies without revealing customers](visuals/20-incident.gif)
 
@@ -242,15 +244,15 @@ Safety institute S checks a record against the cosigned trail and sees what happ
 
 ### 8. Proving which model was used
 
-The model server publishes which model it is attested to run. The edge records it and refuses a swapped model.
-
 **Verdict:** Needs two additions
+
+The model server publishes which model it is attested to run. The edge records it and refuses a swapped model.
 
 ![Animation: a swapped model refused at the edge](visuals/21-model.gif)
 
 **Uses:** [attestation levels](#where-the-edge-is-decides-the-attestation-level), [records on both sides](#every-call-leaves-records-on-both-sides)
 
-**Missing:** a cite of the server’s attestation, and a claim naming the model (Appendix D.4).
+**Missing:** a cite of the server’s attestation, and a claim naming the model (Open Issues, Appendix D).
 
 ## What TRAIL doesn’t cover
 
@@ -265,11 +267,11 @@ Section numbers refer to `draft-nassar-agentproto-trail`.
 
 | Topic | In the revised draft | Status |
 |---|---|---|
-| Sandbox | Added to §1.7 | Done in the revised draft |
-| Cell, edge | Redefined in §1.7: everything behind one edge; where traffic leaves the cell | Done |
+| Sandbox | Added to §1.6 | Done in the revised draft |
+| Cell, edge | Redefined in §1.6: everything behind one edge; where traffic leaves the cell | Done |
 | Attestation levels | §2.1 table: where the edge is, what the cell is, who can read the key, what goes around it | Done |
 | Authorities and witnesses | §2.2 added; a witness acts only through require-witness | Done |
-| Directed records, grants, admission issuer | Added to §1.7 | Done |
+| Directed records, grants, admission issuer | Added to §1.6 | Done |
 | How directives act | §9.2 table: immediate, per action, or when state goes stale | Done |
 | Gate on every action | §10.1: everything waits, and stops if the approver is unreachable | Done |
 | Disclosure outside a grant | §10.3: refused and recorded | Done |
@@ -278,5 +280,6 @@ Section numbers refer to `draft-nassar-agentproto-trail`.
 | Requiring a sender’s grants | Not specified | Open issue |
 | Killswitch, A1/B1 numbering | Page only | The draft keeps *hold* |
 | Scenario additions | Appendix D proposals | Open issue: which to specify |
+| Carrying TRAIL in PACE and MCP over MoQ | §7.2: TRAIL beside the PACE layers; §7.3: MCP client scopes and multi round-trip requests | Draft only; the page doesn’t cover protocol mappings |
 
 Kareem Nassar, Suhas Nandakumar, and Cullen Jennings. Revises Suhas Nandakumar’s earlier TRAIL draft.
