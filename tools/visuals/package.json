@@ -1,0 +1,8 @@
+{
+  "name": "trail-visuals-tools",
+  "private": true,
+  "description": "Exports the canvas animations in TRAIL_visuals.html as GIFs",
+  "dependencies": {
+    "playwright-core": "1.48.2"
+  }
+}
