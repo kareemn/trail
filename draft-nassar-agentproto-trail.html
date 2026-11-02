@@ -1600,8 +1600,8 @@ witnessed.<a href="#section-1.2-2.12.1" class="pilcrow">¶</a></p>
           <dd class="break"></dd>
 <dt id="section-1.2-2.13">Live oversight:</dt>
           <dd style="margin-left: 1.5em" id="section-1.2-2.14">
-            <p id="section-1.2-2.14.1">Authorities, including ones the operator did not enumerate, can
-watch, gate, hold, and stop activity while it runs.<a href="#section-1.2-2.14.1" class="pilcrow">¶</a></p>
+            <p id="section-1.2-2.14.1">Authorities, including ones the operator did not list in advance,
+can watch, gate, hold, and stop activity while it runs.<a href="#section-1.2-2.14.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 <dt id="section-1.2-2.15">Bounded scope:</dt>
@@ -2108,8 +2108,9 @@ evidence plane, and for calls where both sides support it. A MOQT
 Object has a stable name and cannot be changed once published
 <span>[<a href="#MoQ-TRANSPORT" class="cite xref">MoQ-TRANSPORT</a>]</span>, relays cannot strip Immutable Properties, the trail
 and the call share one session, and subscriptions push trails and
-state to parties the publisher did not enumerate. <a href="#tab-http-losses" class="auto internal xref">Table 4</a>
-compares each of these with HTTP. MOQT also provides:<a href="#section-2.4-1" class="pilcrow">¶</a></p>
+state to parties the publisher did not list in advance.
+<a href="#tab-http-losses" class="auto internal xref">Table 4</a> compares each of these with HTTP. MOQT also
+provides:<a href="#section-2.4-1" class="pilcrow">¶</a></p>
 <span class="break"></span><dl class="dlParallel" id="section-2.4-2">
           <dt id="section-2.4-2.1">History and live data under one name:</dt>
           <dd style="margin-left: 1.5em" id="section-2.4-2.2">
@@ -2760,7 +2761,7 @@ call.<a href="#section-6.4-1" class="pilcrow">¶</a></p>
               <td class="text-left" rowspan="1" colspan="1">Per-class freshness budgets bound the delay (<a href="#budgets" class="auto internal xref">Section 9.4</a>)</td>
             </tr>
             <tr>
-              <td class="text-left" rowspan="1" colspan="1">Trails for parties not enumerated</td>
+              <td class="text-left" rowspan="1" colspan="1">Trails for parties not listed in advance</td>
               <td class="text-left" rowspan="1" colspan="1">SUBSCRIBE_TRACKS on a prefix</td>
               <td class="text-left" rowspan="1" colspan="1">Static tiles, pulled</td>
               <td class="text-left" rowspan="1" colspan="1">Discovery through witness trails (<a href="#http-trails" class="auto internal xref">Section 6.2</a>)</td>
@@ -4613,9 +4614,11 @@ and interaction traceability across domains.<a href="#appendix-A-2.6.1" class="p
 </li>
       </ul>
 <p id="appendix-A-3">TRAIL differs in four ways: the evidence is produced outside the agent
-at an attested edge; the edge acts only while its oversight is fresh;
-trails reach authorized parties the operator did not enumerate; and
-control (holds, gates, admission) returns on the same evidence plane.
+at an attested edge; the edge acts only while its oversight is fresh,
+so an authority that goes silent, or a trail that nobody is witnessing,
+stops the agent; trails reach authorized parties the operator did not
+list in advance; and control (holds, gates, admission) returns on the
+same evidence plane.
 TRAIL aims to converge with these drafts on the record envelope, which
 all of them base on COSE or SCITT.<a href="#appendix-A-3" class="pilcrow">¶</a></p>
 </section>

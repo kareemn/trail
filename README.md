@@ -2,7 +2,7 @@
 
 > Generated from [`TRAIL_visuals.html`](TRAIL_visuals.html) by `tools/visuals/build.sh`; do not edit by hand. The animations play slower than on the interactive page. The draft itself is [`draft-nassar-agentproto-trail.md`](draft-nassar-agentproto-trail.md).
 
-TRAIL is an IETF draft that makes agent-to-agent and agent-to-tool communication auditable and revocable. Wherever agents run, an edge signs a record of each action an agent takes, keeps those records in a trail nobody can quietly change, and stops the agent’s traffic if the parties it answers to can’t currently see it. TRAIL doesn’t decide whether an action is safe. It lets the parties that do decide approve, refuse, or stop actions, and see the records they need to judge them.
+TRAIL is an IETF draft that makes agent-to-agent and agent-to-tool communication auditable and revocable: the parties that oversee it can stop or gate it while it runs. Wherever agents run, an edge signs a record of each action an agent takes, keeps those records in a trail nobody can quietly change, and stops the agent’s traffic if the parties it answers to can’t currently see it. TRAIL doesn’t decide whether an action is safe. It lets the parties that do decide approve, refuse, or stop actions, and see the records they need to judge them.
 
 Kareem Nassar, Suhas Nandakumar, and Cullen Jennings. Draft: `draft-nassar-agentproto-trail`.
 

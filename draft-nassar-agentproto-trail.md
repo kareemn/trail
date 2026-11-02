@@ -222,8 +222,8 @@ Liveness:
   witnessed.
 
 Live oversight:
-: Authorities, including ones the operator did not enumerate, can
-  watch, gate, hold, and stop activity while it runs.
+: Authorities, including ones the operator did not list in advance,
+  can watch, gate, hold, and stop activity while it runs.
 
 Bounded scope:
 : Limits that span many nodes can be counted and enforced.
@@ -553,8 +553,9 @@ evidence plane, and for calls where both sides support it. A MOQT
 Object has a stable name and cannot be changed once published
 {{MoQ-TRANSPORT}}, relays cannot strip Immutable Properties, the trail
 and the call share one session, and subscriptions push trails and
-state to parties the publisher did not enumerate. {{tab-http-losses}}
-compares each of these with HTTP. MOQT also provides:
+state to parties the publisher did not list in advance.
+{{tab-http-losses}} compares each of these with HTTP. MOQT also
+provides:
 
 History and live data under one name:
 : The same records track serves live records by SUBSCRIBE and past ones
@@ -981,7 +982,7 @@ call.
 | Stripping | Relays cannot remove Immutable Properties | An intermediary can drop the header field | require-record ({{core-rule}}): the receiver refuses the call, so stripping fails closed |
 | Single commit point | Trail and call on one session | Two systems | Acknowledged append before send |
 | Delivery of holds | Pushed on subscription | Poll or SSE | Per-class freshness budgets bound the delay ({{budgets}}) |
-| Trails for parties not enumerated | SUBSCRIBE_TRACKS on a prefix | Static tiles, pulled | Discovery through witness trails ({{http-trails}}) |
+| Trails for parties not listed in advance | SUBSCRIBE_TRACKS on a prefix | Static tiles, pulled | Discovery through witness trails ({{http-trails}}) |
 {: #tab-http-losses title="HTTP binding losses and mitigations"}
 
 ## Hybrid Deployment {#hybrid}
@@ -2008,9 +2009,11 @@ workloads:
   and interaction traceability across domains.
 
 TRAIL differs in four ways: the evidence is produced outside the agent
-at an attested edge; the edge acts only while its oversight is fresh;
-trails reach authorized parties the operator did not enumerate; and
-control (holds, gates, admission) returns on the same evidence plane.
+at an attested edge; the edge acts only while its oversight is fresh,
+so an authority that goes silent, or a trail that nobody is witnessing,
+stops the agent; trails reach authorized parties the operator did not
+list in advance; and control (holds, gates, admission) returns on the
+same evidence plane.
 TRAIL aims to converge with these drafts on the record envelope, which
 all of them base on COSE or SCITT.
 
