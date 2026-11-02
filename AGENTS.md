@@ -216,14 +216,4 @@ differences table.
 
 ## Known issues (remove each line once fixed)
 
-- **Stale citations:** the page cites §1.7 for terminology, which is now §1.6.
-  It also cites Appendix D.1–D.5 for scenario extensions, which are now one
-  bullet in Open Issues (Appendix D). `check_refs.py` lists them all.
-- **Malformed verdict badges:** each scenario's badge is written as
-  `<span class="verdict SUMMARY">kind</span>`, so the page never shows the
-  summary and the badge loses its color. Intended:
-  `<span class="verdict kind">label</span>` followed by the summary paragraph.
-  `page2md.py` handles both forms.
-- **Draft build break:** `(mcp, <session-id>, ...)` in the MCP over MOQT
-  section breaks the build with current kramdown-rfc and xml2rfc 3.31. Wrap it
-  in backticks.
+None at present.

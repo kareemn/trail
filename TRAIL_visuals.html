@@ -202,7 +202,7 @@ table.track th { font-weight: 600; border-top: 0; }
   <canvas width="900" height="600"></canvas>
   <div class="controls"><button type="button" class="playbtn">Play</button><input type="range" min="0" max="1000" value="0" aria-label="Animation position"><button type="button" class="bigbtn" aria-label="Show larger">Larger</button></div>
 </figure>
-<p class="where">In the draft: terminology (1.7); architecture (2)</p>
+<p class="where">In the draft: terminology (1.6); architecture (2)</p>
 
   <h3 class="scene" id="terms">The draft’s terms, in plain words</h3>
   <div class="tablewrap"><table class="gloss">
@@ -216,12 +216,15 @@ table.track th { font-weight: 600; border-top: 0; }
       <tr><td>agent, principal, operator</td><td>The AI; the person it acts for; the company running it.</td></tr>
       <tr><td>Action Record</td><td>The signed record of one action, written to the trail before the call leaves.</td></tr>
       <tr><td>trail, checkpoint</td><td>An edge’s records in order; a signed summary closing each stretch of it.</td></tr>
+      <tr><td>epoch, archive</td><td>The stretch of a trail that one checkpoint closes; a service that stores trails and serves them to parties allowed to read them.</td></tr>
       <tr><td>evidence plane</td><td>Where trails, state, and directed records are published: a MoQ relay or HTTP servers.</td></tr>
       <tr><td>state</td><td>What each party republishes on a schedule: an authority’s rules, an operator’s grants, an edge’s level.</td></tr>
       <tr><td>directive</td><td>A rule in an authority’s state: <code>policy</code>, <code>hold</code>, <code>freshness-budget</code>, <code>require-gate</code>, <code>require-witness</code>, <code>require-level</code>, <code>require-admission</code>, <code>require-record</code>.</td></tr>
-      <tr><td>directed record</td><td>A record published for one party, which can be encrypted to it: gate requests, approvals, disclosures.</td></tr>
+      <tr><td>directed record</td><td>A record published for one party, which can be encrypted to it: gate requests, approvals, disclosures, cosignatures.</td></tr>
       <tr><td>grant</td><td>A right an operator gives an authority: which directives it may issue, for what, and which fields it may read.</td></tr>
+      <tr><td>action class, data class</td><td>A number that groups actions by impact, such as payments; a label on a hidden field, such as an amount.</td></tr>
       <tr><td>authority, witness</td><td>Sets rules within its grants; checks trails are complete and cosigns them.</td></tr>
+      <tr><td>cosignature</td><td>A witness’s signature on a checkpoint: it holds every record up to that point, and the trail only grew since the last one it signed. An edge whose cosignatures get too old pauses.</td></tr>
       <tr><td>admission issuer, admission token</td><td>A party that hands out a fixed number of tokens; the token an agent’s records cite.</td></tr>
     </tbody>
   </table></div>
@@ -321,62 +324,62 @@ table.track th { font-weight: 600; border-top: 0; }
 <section id="scenarios">
   <h2>What you can build with it</h2>
   <p>Eight scenarios built from the blocks above. Each lists the blocks it uses. Parts the draft doesn’t define yet are drawn as dashed red boxes.</p>
-<h3 class="scene" id="monitor">1. An independent monitor<span class="verdict Today a monitor runs inside the agent’s machine; if it crashes, the agent keeps going. Here Monitor M is outside both operators and is both an authority and a witness, so its silence stops Agent A.">limit</span></h3>
-<p>Works, with limits</p>
+<h3 class="scene" id="monitor">1. An independent monitor<span class="verdict limit">Works, with limits</span></h3>
+<p>Today a monitor runs inside the agent’s machine; if it crashes, the agent keeps going. Here Monitor M is outside both operators and is both an authority and a witness, so its silence stops Agent A.</p>
 <figure class="stage" id="s-monitor" data-scene="scMonitor" aria-label="Animation: a crashed monitor stopping an agent">
   <canvas width="900" height="600"></canvas>
   <div class="controls"><button type="button" class="playbtn">Play</button><input type="range" min="0" max="1000" value="0" aria-label="Animation position"><button type="button" class="bigbtn" aria-label="Show larger">Larger</button></div>
 </figure>
-<div class="draftcheck"><p class="uses"><strong>Uses:</strong> <a href="#h-e">freshness-budget</a>, <a href="#h-j">witnesses and authorities</a></p><p class="miss"><strong>Missing:</strong> letting the monitor replace an action rather than only block or approve it (draft Appendix D.2). Freshness shows the monitor is reachable and receiving, not that it reviewed anything.</p></div>
-<h3 class="scene" id="replicate">2. Limiting how many agents can run<span class="verdict An agent copies itself. The copy has no admission token, so TRAIL peers refuse it. A server that doesn’t run TRAIL still answers, but the copy’s calls are in A’s trail.">limit</span></h3>
-<p>Works, with limits</p>
+<div class="draftcheck"><p class="uses"><strong>Uses:</strong> <a href="#h-e">freshness-budget</a>, <a href="#h-j">witnesses and authorities</a></p><p class="miss"><strong>Missing:</strong> letting the monitor replace an action rather than only block or approve it (draft Open Issues, Appendix D). Freshness shows the monitor is reachable and receiving, not that it reviewed anything.</p></div>
+<h3 class="scene" id="replicate">2. Limiting how many agents can run<span class="verdict limit">Works, with limits</span></h3>
+<p>An agent copies itself. The copy has no admission token, so TRAIL peers refuse it. A server that doesn’t run TRAIL still answers, but the copy’s calls are in A’s trail.</p>
 <figure class="stage" id="s-replicate" data-scene="scReplicate" aria-label="Animation: a copy without a token refused by a TRAIL peer">
   <canvas width="900" height="600"></canvas>
   <div class="controls"><button type="button" class="playbtn">Play</button><input type="range" min="0" max="1000" value="0" aria-label="Animation position"><button type="button" class="bigbtn" aria-label="Show larger">Larger</button></div>
 </figure>
-<div class="draftcheck"><p class="uses"><strong>Uses:</strong> <a href="#h-y">admission tokens</a>, <a href="#h-c">records on both sides</a></p><p class="miss"><strong>Missing:</strong> metered tokens for spend and API budgets (Appendix D.5).</p></div>
-<h3 class="scene" id="worm">3. Stopping a prompt-injection worm<span class="verdict An injection spreads from Agent A to Agent B at another company. Records cite what was received, so Regulator R can follow the path and hold both agents by name.">ext</span></h3>
-<p>Partly works</p>
+<div class="draftcheck"><p class="uses"><strong>Uses:</strong> <a href="#h-y">admission tokens</a>, <a href="#h-c">records on both sides</a></p><p class="miss"><strong>Missing:</strong> metered tokens for spend and API budgets (Open Issues, Appendix D).</p></div>
+<h3 class="scene" id="worm">3. Stopping a prompt-injection worm<span class="verdict ext">Partly works</span></h3>
+<p>An injection spreads from Agent A to Agent B at another company. Records cite what was received, so Regulator R can follow the path and hold both agents by name.</p>
 <figure class="stage" id="s-worm" data-scene="scWorm" aria-label="Animation: an injection spreading and a hold stopping both agents">
   <canvas width="900" height="600"></canvas>
   <div class="controls"><button type="button" class="playbtn">Play</button><input type="range" min="0" max="1000" value="0" aria-label="Animation position"><button type="button" class="bigbtn" aria-label="Show larger">Larger</button></div>
 </figure>
-<div class="draftcheck"><p class="uses"><strong>Uses:</strong> <a href="#h-c">records on both sides</a>, <a href="#h-p">policy and hold</a>, <a href="#h-r">grants</a></p><p class="miss"><strong>Missing:</strong> a hold that matches everything descending from an input (Appendix D.1). The edge sees what an agent received, not what the model used.</p></div>
-<h3 class="scene" id="breaker">4. Cutting off a compromised tool server<span class="verdict One hold from Security team T naming the server stops every company that granted T that right.">ok</span></h3>
-<p>Works</p>
+<div class="draftcheck"><p class="uses"><strong>Uses:</strong> <a href="#h-c">records on both sides</a>, <a href="#h-p">policy and hold</a>, <a href="#h-r">grants</a></p><p class="miss"><strong>Missing:</strong> a hold that matches everything descending from an input (Open Issues, Appendix D). The edge sees what an agent received, not what the model used.</p></div>
+<h3 class="scene" id="breaker">4. Cutting off a compromised tool server<span class="verdict ok">Works</span></h3>
+<p>One hold from Security team T naming the server stops every company that granted T that right.</p>
 <figure class="stage" id="s-breaker" data-scene="scBreaker" aria-label="Animation: one hold stopping calls to a compromised server">
   <canvas width="900" height="600"></canvas>
   <div class="controls"><button type="button" class="playbtn">Play</button><input type="range" min="0" max="1000" value="0" aria-label="Animation position"><button type="button" class="bigbtn" aria-label="Show larger">Larger</button></div>
 </figure>
 <div class="draftcheck"><p class="uses"><strong>Uses:</strong> <a href="#h-p">policy and hold</a>, <a href="#h-r">grants</a></p></div>
-<h3 class="scene" id="dial">5. Allowing less when oversight lags<span class="verdict Each kind of action needs a more or less recent cosignature. As Notary N falls behind, risky actions stop first.">ok</span></h3>
-<p>Works</p>
+<h3 class="scene" id="dial">5. Allowing less when oversight lags<span class="verdict ok">Works</span></h3>
+<p>Each kind of action needs a more or less recent cosignature. As Notary N falls behind, risky actions stop first.</p>
 <figure class="stage" id="s-dial" data-scene="scDial" aria-label="Animation: risky actions blocked as the notary falls behind">
   <canvas width="900" height="600"></canvas>
   <div class="controls"><button type="button" class="playbtn">Play</button><input type="range" min="0" max="1000" value="0" aria-label="Animation position"><button type="button" class="bigbtn" aria-label="Show larger">Larger</button></div>
 </figure>
 <div class="draftcheck"><p class="uses"><strong>Uses:</strong> <a href="#h-e">freshness-budget</a>, <a href="#h-j">witnesses and authorities</a></p></div>
-<h3 class="scene" id="approval">6. A person at another company approves an action<span class="verdict Bank K is an authority with a gate on wires to it. Officer O approves with a passkey; the wire’s record cites the approval.">ext</span></h3>
-<p>Needs one addition</p>
+<h3 class="scene" id="approval">6. A person at another company approves an action<span class="verdict ext">Needs one addition</span></h3>
+<p>Bank K is an authority with a gate on wires to it. Officer O approves with a passkey; the wire’s record cites the approval.</p>
 <figure class="stage" id="s-approval" data-scene="scApproval" aria-label="Animation: a wire held until an officer at the bank approves it">
   <canvas width="900" height="600"></canvas>
   <div class="controls"><button type="button" class="playbtn">Play</button><input type="range" min="0" max="1000" value="0" aria-label="Animation position"><button type="button" class="bigbtn" aria-label="Show larger">Larger</button></div>
 </figure>
-<div class="draftcheck"><p class="uses"><strong>Uses:</strong> <a href="#h-q">gates and directed records</a>, <a href="#h-r">grants</a></p><p class="miss"><strong>Missing:</strong> how a passkey (WebAuthn) signature becomes an approval record (Appendix D.3).</p></div>
-<h3 class="scene" id="incident">7. Reporting an incident without customer data<span class="verdict Safety institute S checks a record against the cosigned trail and sees what happened, without seeing the customer.">limit</span></h3>
-<p>Works, with limits</p>
+<div class="draftcheck"><p class="uses"><strong>Uses:</strong> <a href="#h-q">gates and directed records</a>, <a href="#h-r">grants</a></p><p class="miss"><strong>Missing:</strong> how a passkey (WebAuthn) signature becomes an approval record (Open Issues, Appendix D).</p></div>
+<h3 class="scene" id="incident">7. Reporting an incident without customer data<span class="verdict limit">Works, with limits</span></h3>
+<p>Safety institute S checks a record against the cosigned trail and sees what happened, without seeing the customer.</p>
 <figure class="stage" id="s-incident" data-scene="scIncident" aria-label="Animation: an incident report that verifies without revealing customers">
   <canvas width="900" height="600"></canvas>
   <div class="controls"><button type="button" class="playbtn">Play</button><input type="range" min="0" max="1000" value="0" aria-label="Animation position"><button type="button" class="bigbtn" aria-label="Show larger">Larger</button></div>
 </figure>
 <div class="draftcheck"><p class="uses"><strong>Uses:</strong> <a href="#h-h">tamper evidence</a>, <a href="#h-x">disclosure</a></p></div>
-<h3 class="scene" id="model">8. Proving which model was used<span class="verdict The model server publishes which model it is attested to run. The edge records it and refuses a swapped model.">ext</span></h3>
-<p>Needs two additions</p>
+<h3 class="scene" id="model">8. Proving which model was used<span class="verdict ext">Needs two additions</span></h3>
+<p>The model server publishes which model it is attested to run. The edge records it and refuses a swapped model.</p>
 <figure class="stage" id="s-model" data-scene="scModel" aria-label="Animation: a swapped model refused at the edge">
   <canvas width="900" height="600"></canvas>
   <div class="controls"><button type="button" class="playbtn">Play</button><input type="range" min="0" max="1000" value="0" aria-label="Animation position"><button type="button" class="bigbtn" aria-label="Show larger">Larger</button></div>
 </figure>
-<div class="draftcheck"><p class="uses"><strong>Uses:</strong> <a href="#h-i">attestation levels</a>, <a href="#h-c">records on both sides</a></p><p class="miss"><strong>Missing:</strong> a cite of the server’s attestation, and a claim naming the model (Appendix D.4).</p></div>
+<div class="draftcheck"><p class="uses"><strong>Uses:</strong> <a href="#h-i">attestation levels</a>, <a href="#h-c">records on both sides</a></p><p class="miss"><strong>Missing:</strong> a cite of the server’s attestation, and a claim naming the model (Open Issues, Appendix D).</p></div>
 
 </section>
 
@@ -396,11 +399,11 @@ table.track th { font-weight: 600; border-top: 0; }
   <div class="tablewrap"><table class="track">
     <thead><tr><th>Topic</th><th>In the revised draft</th><th>Status</th></tr></thead>
     <tbody>
-      <tr><td>Sandbox</td><td>Added to §1.7</td><td>Done in the revised draft</td></tr>
-      <tr><td>Cell, edge</td><td>Redefined in §1.7: everything behind one edge; where traffic leaves the cell</td><td>Done</td></tr>
+      <tr><td>Sandbox</td><td>Added to §1.6</td><td>Done in the revised draft</td></tr>
+      <tr><td>Cell, edge</td><td>Redefined in §1.6: everything behind one edge; where traffic leaves the cell</td><td>Done</td></tr>
       <tr><td>Attestation levels</td><td>§2.1 table: where the edge is, what the cell is, who can read the key, what goes around it</td><td>Done</td></tr>
       <tr><td>Authorities and witnesses</td><td>§2.2 added; a witness acts only through require-witness</td><td>Done</td></tr>
-      <tr><td>Directed records, grants, admission issuer</td><td>Added to §1.7</td><td>Done</td></tr>
+      <tr><td>Directed records, grants, admission issuer</td><td>Added to §1.6</td><td>Done</td></tr>
       <tr><td>How directives act</td><td>§9.2 table: immediate, per action, or when state goes stale</td><td>Done</td></tr>
       <tr><td>Gate on every action</td><td>§10.1: everything waits, and stops if the approver is unreachable</td><td>Done</td></tr>
       <tr><td>Disclosure outside a grant</td><td>§10.3: refused and recorded</td><td>Done</td></tr>
@@ -409,6 +412,7 @@ table.track th { font-weight: 600; border-top: 0; }
       <tr><td>Requiring a sender’s grants</td><td>Not specified</td><td>Open issue</td></tr>
       <tr><td>Killswitch, A1/B1 numbering</td><td>Page only</td><td>The draft keeps <em>hold</em></td></tr>
       <tr><td>Scenario additions</td><td>Appendix D proposals</td><td>Open issue: which to specify</td></tr>
+      <tr><td>Carrying TRAIL in PACE and MCP over MoQ</td><td>§7.2: TRAIL in the PACE Object path at the edge; §7.3: MCP client scopes and multi round-trip requests</td><td>Draft only; the page doesn’t cover protocol mappings</td></tr>
     </tbody>
   </table></div>
 </section>

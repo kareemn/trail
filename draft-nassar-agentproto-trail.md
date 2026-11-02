@@ -62,7 +62,6 @@ normative:
   WIMSE-CREDS: I-D.ietf-wimse-workload-creds
   WIMSE-HTTPSIG: I-D.ietf-wimse-http-signature
   TXN-TOKENS: I-D.ietf-oauth-transaction-tokens
-  WIMSE-WPT: I-D.ietf-wimse-wpt
   RFC9334:
   RFC8392:
   RATS-EAR: I-D.ietf-rats-ear
@@ -83,13 +82,14 @@ informative:
   RFC6973:
   RFC8693:
   MCP-MOQT: I-D.jennings-agentproto-mcp-over-moqt
-  PACE: I-D.nandakumar-agentproto-moq-pace
+  PACE: I-D.nandakumar-agentproto-pace
   RFC7942:
   RFC9396:
   RFC9711:
   RFC9999:
   RATS-AR4SI: I-D.ietf-rats-ar4si
   WIMSE-ARCH: I-D.ietf-wimse-arch
+  WIMSE-WPT: I-D.ietf-wimse-wpt
   WIMSE-AIMS: I-D.ietf-wimse-aims
   WIMSE-ATTEST: I-D.reddy-wimse-workload-attestation
   WIMSE-AUTHZ-EVIDENCE: I-D.munoz-wimse-authorization-evidence
@@ -252,43 +252,20 @@ Two bindings, one evidence format:
   MOQT is preferred for the evidence plane ({{why-moqt}}).
 
 Three track kinds per party:
-: Every party (edge, authority, witness, operator) publishes a records
-  track, a state track, and directed tracks. There are no per-function
-  namespaces.
+: Every party publishes records, state, and directed records
+  ({{tracks}}).
 
 Two freshness rules:
-: An edge must hold a fresh state snapshot from each authority it
-  answers to, and its trail must hold a fresh witness cosignature.
-  These two rules provide kill-switch reachability, monitoring leases,
-  heartbeats, and checkpoint liveness.
+: Fresh authority state and fresh witness cosignatures keep an edge
+  running ({{freshness}}).
 
 ## Scope {#scope}
 
-This document specifies:
-
-* The roles and architecture ({{architecture}}), including what the
-  attestation levels mean ({{levels}}) and why MOQT is preferred
-  ({{why-moqt}}).
-
-* The Action Record, its claims, and its signature ({{record}}).
-
-* The core rule: no record, no action ({{core-rule}}).
-
-* The MOQT binding ({{moqt}}) and the HTTP binding ({{http}}).
-
-* How TRAIL attaches to PACE, to MCP over MOQT, and to agent protocols
-  over HTTP ({{protocols}}).
-
-* Trails, checkpoints, and witnesses ({{trails}}).
-
-* State snapshots, directives, and the freshness rules ({{state}}).
-
-* Gates, admission, scoped disclosure, and media evidence
-  ({{gates-etc}}).
-
-* Identity, delegation, and attestation profiles ({{identity}}).
-
-* Authorization to publish and read TRAIL tracks ({{authorization}}).
+This document specifies the Action Record, the rule that no action
+leaves a cell without one, the MOQT and HTTP bindings, how TRAIL
+attaches to agent protocols, trails and witnesses, state and
+directives, and the profiles of existing identity, delegation,
+attestation, and authorization work that TRAIL uses.
 
 This document does not specify:
 
@@ -299,12 +276,7 @@ This document does not specify:
   does not define it.
 
 * Agent behavior, decision-making, policy languages, inspector models,
-  or the detection of harmful content. TRAIL records actions and
-  enforces rules at the edge; it defines no way to judge whether an
-  action is safe. An authority that judges actions with its own tools
-  acts through TRAIL: a gate before an action ({{gates}}), which is a
-  protocol-level confirmation step, a policy at the edge as it happens,
-  and a hold afterwards ({{snapshots}}).
+  or the detection of harmful content ({{limits}}).
 
 * New MOQT messages.
 
@@ -378,7 +350,24 @@ Trail:
 
 Checkpoint:
 : An Action Record that signs the size and root of its own trail at the
-  end of an epoch.
+  end of an epoch, covering every record before it.
+
+Cosignature:
+: A witness's countersignature on a checkpoint. It states that the
+  witness holds every record the checkpoint covers and that the trail
+  extends the last checkpoint the witness cosigned ({{witnesses}}).
+
+Epoch:
+: The span of a trail that ends with a checkpoint. Over MOQT, an epoch
+  is one Group of the records track.
+
+Archive:
+: A service that stores trails and serves them to authorized readers
+  ({{archives}}).
+
+Evidence plane:
+: The tracks, or HTTP resources, that carry trails, state, and directed
+  records between parties.
 
 Acknowledgment:
 : The responder's Action Record that cites a request's record. It is
@@ -386,8 +375,8 @@ Acknowledgment:
 
 Directed record:
 : A record published by one party for one other party, which can be
-  encrypted to it: gate requests, approvals, admission tokens, and
-  disclosures ({{tracks}}).
+  encrypted to it: gate requests, approvals, admission tokens,
+  disclosures, requests for disclosure, and cosignatures ({{tracks}}).
 
 State:
 : A party's current signed snapshot, republished on a schedule
@@ -400,6 +389,14 @@ Directive:
 Grant:
 : A right an operator gives an authority: which directive types it may
   issue, for what scope, and which data classes it may read.
+
+Action class:
+: A deployment-defined number that groups actions by impact, such as
+  payments. Selectors and freshness budgets select actions by class.
+
+Data class:
+: A deployment-defined number that labels a redacted claim, such as an
+  amount. Grants list the data classes an authority may read.
 
 Hold:
 : A directive that tells edges to stop actions that match a selector.
@@ -472,9 +469,13 @@ Result {{RFC9334}} about the edge's key ({{attestation}}).
 | Level | Where the edge is | What the cell is | Who can read the key | What goes around the edge |
 |---|---|---|---|---|
 | `software` | A process beside the sandbox on the same host, such as a sidecar proxy or egress gateway | The sandbox and the edge | The host | An escape from the sandbox |
-| `tee` | Inside a confidential VM or with its key in a TPM | The confidential VM | Not the host | An escape into the VM |
+| `tee` | Inside a confidential VM, with its key sealed to that VM | The confidential VM | Not the host | An escape into the VM |
 | `isolated` | Separate hardware that all of the machine's traffic crosses, such as a DPU or SmartNIC | The whole machine | Nothing on the host | Only compromise of that hardware |
 {: #tab-levels title="Attestation levels"}
+
+A key held in a TPM on an ordinary host cannot be exported, but the
+host can still use it to sign. An edge with such a key is at the
+`software` level.
 
 The edge is well placed to produce these records. It is on the path, so
 the trail is complete; it holds keys outside the agent, so a
@@ -498,6 +499,16 @@ TRAIL separates two jobs:
 * An authority sets rules, issues holds, approves gated actions, and
   reads the claims its grant covers.
 
+An edge signs its own records, so its signature alone cannot show
+that it keeps one history or that it dropped nothing. At the end of
+each epoch the edge signs a checkpoint over its whole trail, and a
+witness that holds every record countersigns it. The cosignature does
+three things. It fixes one history: a witness never cosigns two roots
+for the same trail and size, so a conflicting checkpoint is proof of
+equivocation. It anchors inclusion proofs for single records. And it
+shows that someone is watching: an edge whose cosignatures grow stale
+pauses, so stopping the witness stops the agent ({{freshness}}).
+
 Keeping them apart gives least privilege, lets witnesses check
 authorities as well as operators, and lets several witnesses back one
 authority. One party MAY hold both roles; a monitor that both checks a
@@ -506,68 +517,42 @@ at once.
 
 ## Dialogs {#dialogs}
 
-Agent interactions are often grouped into dialogs: a shared context,
-named by an identifier and a generation, that several agents open,
-join, update, and leave {{PACE}}. TRAIL does not manage dialogs. It
-records the actions taken inside them, so that those records can be
-correlated and the dialog's own changes are witnessed:
+Agent interactions are grouped into dialogs: the correlated sequence of
+interactions among participants over the course of a task, named by a
+dialog identifier and a generation and managed by a controller
+{{PACE}}. TRAIL does not manage dialogs. It records the actions taken
+inside them:
 
 * Every Action Record for an action inside a dialog carries the dialog
-  identifier and generation ({{payload}}). Records of all participants
-  can be correlated across cells and operators.
+  identifier and the generation the sender last knew ({{payload}}).
+  Records of all participants can then be correlated across cells and
+  operators.
 
-* Dialog lifecycle operations (OPEN, ACCEPT, UPDATE, REVOKE, TERMINATE)
-  are consequential actions and SHOULD be recorded. Changes to dialog
+* Dialog control operations that change the dialog or stop work are
+  consequential actions and SHOULD be recorded. Changes to dialog
   membership are then witnessed.
 
-* A hold is applied by the edge regardless of dialog state. When a hold
-  stops a participant, the dialog controller SHOULD follow with REVOKE,
-  and the edge MUST keep applying the hold until it is lifted.
+* A hold is applied by the edge regardless of dialog state. It does
+  not depend on the dialog's controller.
 
-* Where a dialog requires confirmation or evidence of approval for a
-  high-risk operation, a TRAIL gate approval ({{gates}}) is a suitable
-  format.
+* Where a dialog requires evidence of approval for a high-risk
+  operation, a TRAIL approval record ({{gates}}) is that evidence.
 
-* Dialog identifiers appear only inside signed payloads, never in TRAIL
-  namespaces or resource paths, so relays and caches do not learn
-  dialog membership from names.
+* TRAIL namespaces never contain dialog identifiers. A binding that
+  puts them in its own track names, as PACE does, protects them with
+  its own relay authorization.
+
+{{pace}} maps these rules onto PACE.
 
 ## Why MOQT {#why-moqt}
 
-Every TRAIL property is available over HTTP, with the losses listed in
-{{http-losses}}. MOQT is preferred for the evidence plane, and for calls
-where both sides support it, because of properties that MOQT has and
-HTTP does not:
-
-Exact binding:
-: A MOQT Object has a stable name and address (Full Track Name, Group,
-  Object) and does not change once published {{MoQ-TRANSPORT}}. An
-  Action Record can therefore bind to exactly one call. An HTTP request
-  has no such name, and a record can only cover a hash of selected
-  components.
-
-Evidence that cannot be stripped:
-: Only the Original Publisher can add Immutable Properties, relays
-  forward them unchanged, and Secure Objects {{MoQ-SECOBJ}}
-  authenticates them end to end. An HTTP intermediary can drop a header
-  field.
-
-One commit point:
-: The edge writes the record to its trail and publishes the call on the
-  same session, through the same first-hop relay, so "appended before
-  the call leaves" ({{moqt-commit}}) is a local ordering rule.
-
-Push to parties the publisher did not enumerate:
-: SUBSCRIBE_TRACKS on a namespace prefix lets authorities, witnesses,
-  and archives receive every trail in a swarm, including trails of
-  cells that appear later, without the publisher knowing who they are.
-  Over HTTP the same result needs discovery through witness trails and
-  repeated fetches ({{http-trails}}).
-
-Pushed state:
-: A subscription with FILL_PARAMETERS delivers the latest snapshot and
-  every later one, so a hold takes effect when it is published. Over
-  HTTP it takes effect at the edge's next poll.
+Every TRAIL property is available over HTTP. MOQT is preferred for the
+evidence plane, and for calls where both sides support it. A MOQT
+Object has a stable name and cannot be changed once published
+{{MoQ-TRANSPORT}}, relays cannot strip Immutable Properties, the trail
+and the call share one session, and subscriptions push trails and
+state to parties the publisher did not enumerate. {{tab-http-losses}}
+compares each of these with HTTP. MOQT also provides:
 
 History and live data under one name:
 : The same records track serves live records by SUBSCRIBE and past ones
@@ -638,7 +623,8 @@ kind = &(
   gate-request: 7, approval: 8,
   hold-applied: 9, disclosure: 10,
   checkpoint: 11, media-seal: 12,
-  lifecycle: 13, admission-release: 14, restart: 15
+  lifecycle: 13, admission-release: 14, restart: 15,
+  cosignature: 16
 )
 
 trail-ref = [ trail-id: bstr .size 16, leaf: uint ]
@@ -672,9 +658,11 @@ context-hashes = {
 
 state-ref = [ authority: tstr, sequence: uint ]
 
-cite = [ cite-type, ref: (trail-ref / call-ref), hash: bstr ]
+cite = [ cite-type, ref: (trail-ref / call-ref / media-ref),
+         hash: bstr ]
 cite-type = &( input: 1, peer-record: 2, media-group: 3,
-               state: 4, directive: 5, approval: 6 )
+               directive: 4, approval: 5 )
+media-ref = [ ftn-hash: bstr, group: uint, objects: uint ]
 ~~~
 {: #fig-record title="Action Record payload"}
 
@@ -684,10 +672,17 @@ hash: wth for the WIT, tth for a Transaction Token, and oth for other
 context tokens such as an access token. An Action Record is, in effect,
 a Workload Proof Token for one call that is also kept as evidence.
 
-The record identifier is the SHA-256 hash of the COSE_Sign1 with an
-empty unprotected header. Inclusion proofs and other material MAY be
-added to the unprotected header, as in SCITT, without changing the
-identifier.
+A cite's hash is the record identifier of the cited record, except in
+a media-group cite, where it is the media root ({{media}}). A directive
+cite names the policy bundle record in the authority's trail. The
+authority snapshots that the edge held are listed in member 14, not in
+cites.
+
+Records and state snapshots MUST use deterministic encoding
+({{Section 4.2.1 of RFC8949}}). The record identifier is the SHA-256
+hash of the COSE_Sign1 encoded with an empty unprotected header map.
+Inclusion proofs and other material MAY be added to the unprotected
+header, as in SCITT, without changing the identifier.
 
 ## Signature Binding {#binding}
 
@@ -760,8 +755,7 @@ The receiving edge MUST:
    those authorities' state MUST check that each named snapshot exists
    and is within the applicable budget.
 
-5. Reject a record identifier it has already accepted, unless the
-   action is idempotent.
+5. Reject a replayed record ({{replay}}).
 
 6. Deliver the call, and append a recv record that cites the sender's
    record.
@@ -784,7 +778,8 @@ Records, state, and directed tracks MUST use Subgroup Delivery Mode,
 MUST NOT use Datagram Delivery Mode, and MUST NOT set a delivery
 timeout.
 
-Nothing that matters for safety may be carried in a mutable Property.
+An edge MUST NOT carry anything that a TRAIL check depends on in a
+mutable Property.
 
 ## Namespaces {#namespaces}
 
@@ -804,8 +799,8 @@ state snapshot, which only authorized parties can read
 ({{authorization}}).
 
 Call Objects stay on their dialog tracks, for example
-("pace", "agents", {agent-id}, {dialog-id}, "a2a", "task") -- {task}
-{{PACE}}. Media stays on its dialog media tracks.
+("pace", "dialogs", {dialog-id}, {agent-id}, "a2a", "task") --
+{task-id} {{PACE}}. Media stays on its dialog media tracks.
 
 An authority sees the whole swarm with one SUBSCRIBE_TRACKS on
 ("trail", S), or one party with SUBSCRIBE_TRACKS on ("trail", S, P).
@@ -820,7 +815,9 @@ records:
   epoch and ends with a checkpoint ({{checkpoints}}). Object IDs within
   a Group start at 0 and are consecutive. The publisher MUST NOT use
   the Prior Object ID Gap Property on a records track, so any gap is
-  evidence of loss or withholding.
+  evidence of loss or withholding. A witness MAY ask for an early
+  checkpoint with REQUEST_UPDATE and NEW_GROUP_REQUEST, when the track
+  sets DYNAMIC_GROUPS.
 
 state:
 : The party's current snapshot. Each Group holds exactly one Object, a
@@ -887,9 +884,10 @@ separate from bulk records and media traffic.
 
 # HTTP Binding {#http}
 
-Most agent traffic today is HTTP {{RFC9110}}: MCP {{MCP}} commonly uses its
-Streamable HTTP transport, and A2A {{A2A}} uses JSON-RPC over HTTP. The
-HTTP binding lets that traffic carry TRAIL without changing the agents.
+Most agent traffic today is HTTP {{RFC9110}}: MCP {{MCP}} commonly
+uses its Streamable HTTP transport, and A2A {{A2A}} uses JSON-RPC over
+HTTP. The HTTP binding lets that traffic carry TRAIL without changing
+the agents.
 
 ## Calls {#http-calls}
 
@@ -905,10 +903,14 @@ Content-Type: application/json
 Content-Digest: sha-256=:X48E9qOokqqrvdts8nOJRJN3OWDUoyWxBf...=:
 Trail-Record: :0oRYQ6MBJgN4HmFwcGxpY2F0aW9uL3RyYWlsLXJlY29y...:
 Signature-Input: trail=("@method" "@target-uri" "content-digest"
-    "trail-record");created=1793318400;keyid="edge-a";tag="trail"
+    "trail-record");created=1793318400;tag="trail";
+    keyid="NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs"
 Signature: trail=:MEUCIQDk3...:
 ~~~
-{: #fig-http-call title="An HTTP request carrying a record (values truncated)"}
+{: #fig-http-call title="An HTTP request carrying a record (truncated)"}
+
+The keyid is the JWK Thumbprint of the edge key, the same value as the
+record's kid.
 
 * The signature MUST cover `@method`, `@target-uri`, `content-digest`
   {{RFC9530}} when the message has content, and `trail-record`.
@@ -1008,43 +1010,99 @@ the exchange carries a record whose call-ref covers it and whose body
 lists the hashes of the fragments it completes.
 
 The protocol's own identifiers (PACE message_id, A2A task identifiers,
-MCP JSON-RPC id) SHOULD be recorded in the record body, so that the
-evidence can be matched to the protocol's own logs. They are not used
-for any TRAIL check.
+MCP JSON-RPC id, and MCP over MOQT client ID) SHOULD be recorded in
+the record body, so that the evidence can be matched to the
+protocol's own logs. They are not used for any TRAIL check.
 
 ## PACE {#pace}
 
+### Layering {#pace-layers}
+
+TRAIL is not part of the PACE protocol. PACE messages, tracks, and
+dialog semantics are unchanged, and PACE works without it. TRAIL runs
+at the edge, in the Object path below the PACE MOQT binding: the edge
+is the Original Publisher of each Object the binding produces
+({{property}}). On the way out, the edge checks the Object against
+cached state, signs an Action Record whose call-ref names the Object's
+track, Location, and payload, appends the record to its trail, and
+publishes the Object with TRAIL_RECORD. On the way in, it verifies the
+record before the binding sees the Object. The edge also publishes its
+own tracks under ("trail", S, P) on the same relays.
+
+~~~ ascii-art
++------------------------------------+
+| Application protocols (A2A, MCP)   |
++------------------------------------+
+| PACE dialog management             |
+| dialog-id, generation, lifecycle   |
++------------------------------------+
+| PACE MOQT binding                  |
+| ("pace","dialogs",D,agent) tracks  |
++====================================+
+| TRAIL at the edge                  |
+| out: check, sign, append, attach   |
+|      TRAIL_RECORD                  |--+ "records", "state", "to"
+| in:  verify, check, append recv    |  |  under ("trail",S,P)
++====================================+  |
+| MOQT: relays, namespaces, C4M      |<-+
++------------------------------------+
+| QUIC / WebTransport                |
++------------------------------------+
+~~~
+{: #fig-pace-layers title="TRAIL in the PACE Object path at the edge"}
+
+PACE correlates a dialog and manages its lifecycle. TRAIL proves what
+each participant did in it and enforces rules at the edge. PACE
+defines no audit data structures; TRAIL supplies them, keyed by the
+PACE dialog identifier.
+
+| Concern | PACE | TRAIL |
+|---|---|---|
+| Correlation | dialog-id and generation | dialog-ref in each signed record |
+| Sender authentication | credentials in control messages; mechanism chosen by the deployment | TRAIL_RECORD signs each request, response, result, and control Object that changes the dialog or stops work, end to end |
+| Records | None | Action Records in witnessed trails, on "records" tracks |
+| Stopping a participant | REVOKE, sent by the controller | Hold, issued by an authority and applied at the edge |
+| Stopping work | CANCEL and CANCEL_ACK | Records both; require-gate stops work before it starts |
+| Approval evidence | Required for high-risk operations; format open | Approval record |
+| Lost contact | Suspend actions that depend on an unconfirmed context change | Freshness rules pause the edge |
+| Relay authorization | C4M scopes per dialog | C4M scopes per party prefix, with the same key |
+{: #tab-pace-layers title="Division of work between PACE and TRAIL"}
+
+### Mapping
+
 Dialog tracks:
 : Call Objects stay on the participant's dialog tracks, for example
-  ("pace", "agents", {agent-id}, {dialog-id}, "a2a", "task") --
+  ("pace", "dialogs", {dialog-id}, {agent-id}, "a2a", "task") --
   {task-id}. TRAIL tracks are separate, under ("trail", S, P). The PACE
-  agent-id and dialog-id never appear in TRAIL namespaces; they appear
-  only inside signed records.
+  dialog-id and agent-id never appear in TRAIL namespaces.
 
 Dialog context:
 : Every record for an Object on a dialog track carries dialog-ref with
-  the PACE dialog-id and the generation the sender last knew.
+  the PACE dialog-id and the generation the sender last knew. These
+  are the values of the dialog reference that the application message
+  carries under `org.ietf.agentproto/dialog-context`. A receiving edge
+  MUST refuse a call whose dialog reference and dialog-ref differ.
 
 Control operations:
-: Each object on a participant's ctrl track (OPEN, ACCEPT, REJECT,
-  UPDATE, JOIN_REQUEST, LEAVE, REVOKE, TERMINATE) SHOULD carry a
-  lifecycle record. PACE requires that deployments that do not trust
-  every relay provide object-level sender authentication for ctrl
-  objects, and notes that Secure Objects does not provide it.
-  TRAIL_RECORD provides it, and the trail makes changes to dialog
-  membership witnessed.
+: Each control message on a participant's ctrl track that changes the
+  dialog or stops work (OPEN, ACCEPT, REJECT, UPDATE, JOIN_REQUEST,
+  LEAVE, REVOKE, TERMINATE, CANCEL, and CANCEL_ACK) SHOULD carry a
+  lifecycle record. STATE_REQUEST, STATE, and ERROR MAY omit it. PACE
+  requires a participant to authenticate the sender of each operation
+  before applying it, and relays terminate TLS on each hop. TRAIL_RECORD
+  authenticates each control Object end to end, and the trail makes
+  changes to dialog membership witnessed.
 
-Envelope:
-: The PACE envelope wraps the application payload. TRAIL_RECORD is an
-  Object Property outside the payload. payload-hash covers the full
-  Object payload, envelope included.
+Payload:
+: PACE carries each message as the Object payload, with no PACE
+  header. payload-hash covers the whole Object payload.
 
 Credentials:
-: Identity assertions, Transaction Tokens, and SD-Card presentations
+: Identity assertions, authorization proofs, and SD-Card presentations
   travel in the PACE credentials member, as PACE specifies. The record
-  carries their hashes in context-hashes. An SD-Card key binding JWT is
-  per-verifier, so it belongs in credentials on OPEN, ACCEPT, or
-  JOIN_REQUEST, never on the cached card track.
+  carries their hashes in context-hashes. A key-bound presentation
+  travels on ACCEPT, UPDATE, or JOIN_REQUEST, the messages that answer
+  a peer's nonce.
 
 Confirmation and evidence:
 : Where PACE lets a peer require evidence of approval for a high-risk
@@ -1052,75 +1110,119 @@ Confirmation and evidence:
   receiving edge finds it as a cite of type approval in the sender's
   record.
 
-Holds and REVOKE:
-: A hold stops matching actions at the edge regardless of dialog state.
-  When a hold stops a participant, the controller SHOULD follow with
-  REVOKE so that the dialog state matches, and the edge keeps applying
-  the hold until it is lifted.
+Holds, REVOKE, and CANCEL:
+: When a hold stops a participant, the controller SHOULD follow with
+  REVOKE so that the dialog context matches, and the edge MUST keep
+  applying the hold until it is lifted. An edge that holds work already
+  in progress SHOULD send CANCEL for it, so that peers stop work they
+  started for the held agent. A CANCEL_ACK with outcome `irreversible`
+  is recorded like any other control message, so the trail shows which
+  actions took effect before the stop.
+
+Delegated dialogs:
+: A dialog opened to carry out delegated work lists its parents in
+  parent_dialog_ids. The lifecycle record of OPEN carries the full
+  dialog context, so the trails show which dialogs descend from which.
 
 Discovery:
-: The PACE card track and TRAIL state track are separate. A cell's
+: The PACE card track and the TRAIL state track are separate. A cell's
   state MAY include the issuer-signed SD-Card that the agent also
   publishes on its card track, so that a receiver can check capability
   claims and key binding from the same subscription it uses for the
   edge's credentials.
 
-## MCP over MOQT
+Revocation at the relay:
+: PACE withdraws a revoked participant's relay authorization, for
+  example by refusing C4M revalidation. A hold at the edge stops the
+  same participant independently of the relay, so either one is enough
+  to stop it.
+
+## MCP over MOQT {#mcp-moqt}
 
 Request and response tracks:
 : MCP over MOQT maps each JSON-RPC exchange onto a request track
-  published by the requester and a response track published by the
-  responder, with one Group per request. The requester's edge attaches
-  a record of kind tool-call (or send for other requests) to the
-  request Object. The responder's edge attaches a record that cites the
-  request's record to the Object that carries the result or error.
+  published by the client and a response track published by the
+  server, in the client's scope (mcp, {server-id}, clients,
+  {client-id}, ...). Each request is a new Group, and the response uses
+  the same Group ID. The client's edge attaches a record of kind
+  tool-call (or send for other requests) to the request Object. The
+  server's edge attaches a record that cites the request's record to
+  the Object that carries the final result or error.
+
+Track ownership:
+: In a client scope the client and the server publish under the same
+  namespaces, and only the track name tells a request track from a
+  response track. A receiving edge MUST check that the record's iss is
+  the edge it expects for that track: the client's edge for a request
+  track, the server's edge for a response track. A peer that publishes
+  a track belonging to the other is then refused.
 
 Multi-object responses:
-: A response Group can hold progress notifications followed by a
-  result. The Object that carries the result MUST carry a record, and
-  the general rule above applies to the notifications.
+: A response Group can hold progress notifications, in one or more
+  Subgroups, followed by the final result or error, which has the
+  highest Object ID. The Object that carries the final result MUST
+  carry a record, and the general rule above applies to the
+  notifications, taken in Object ID order. The record travels with its
+  Object, so a client that recovers a response by FETCH after a
+  reconnection verifies it the same way.
 
-Server-initiated requests:
-: Sampling and elicitation requests come from the MCP server. The
-  server's edge treats them as requests and the client's edge as
-  responses, so model use and user input requested by a tool are
-  recorded with the same rules. A sampling response SHOULD also be
-  recorded as a model-call record by the client's edge.
+Multi round-trip requests:
+: MCP servers do not send requests to clients. A server that needs an
+  elicitation, a sampling result, or the client's roots ends the
+  response with an input-required result, which carries a record like
+  any other result. The client's retry is a new request in a new Group,
+  and its record cites the input-required result's record. Sampling
+  done by the client to answer it is recorded as a model-call record by
+  the client's edge, and the retry cites that record as input. An
+  elicitation that a person answers can be gated ({{gates}}).
+
+Cancellation:
+: A client cancels a request by publishing notifications/cancelled in
+  the request's Group. That Object is a control message and carries a
+  record, as does a PACE CANCEL that names the request.
 
 Origin of tool results:
-: MCP over MOQT requires Secure Objects on tool, sampling, and
-  elicitation tracks that cross relays, and notes that shared keys do
-  not show which endpoint produced an Object, so the application needs
-  a per-publisher signature. TRAIL_RECORD is that signature, and the
-  record in the Encrypted Properties List keeps it hidden from relays.
+: Secure Objects keys are shared by a track's publisher and
+  subscribers, so they do not show which endpoint produced an Object.
+  TRAIL_RECORD is a per-publisher signature, and placing it in the
+  Encrypted Properties List keeps it hidden from relays.
 
 Standalone and PACE modes:
-: In the standalone mode, on (mcp, <session-id>, ...) tracks, there is
-  no dialog; records omit dialog-ref and record the MCP session
-  identifier in the body. In the PACE mode, records carry dialog-ref as
-  in {{pace}}.
+: In standalone mode there is no dialog. Records omit dialog-ref and
+  record the server ID, the client ID, and the JSON-RPC id in the body;
+  MCP keeps no session, so there is no session identifier to record.
+  In PACE mode the same tracks move under ("pace", "dialogs",
+  {dialog-id}, {agent-id}, "mcp", ...), each MCP request carries the
+  PACE dialog reference in `_meta`, and records carry dialog-ref as in
+  {{pace}}.
 
 Authorization:
-: MCP over MOQT maps the MCP OAuth framework onto MOQT by minting C4M
-  tokens from the OAuth grant and binding them with DPoP. TRAIL uses the
-  same tokens ({{authorization}}). The OAuth access token presented to
-  the MCP server, or a Transaction Token derived from it, is recorded by
-  hash in oth or tth.
+: MCP over MOQT presents an OAuth access token, or a C4M token minted
+  from the OAuth grant and bound with the DPoP binding of C4M, to the
+  relay. Credentials that the MCP server itself verifies travel in each
+  request's `_meta`. TRAIL uses the same C4M tokens ({{authorization}}).
+  The access token, or a Transaction Token derived from it, is recorded
+  by hash in oth or tth.
 
-Resources and skills:
-: Resource, prompt, and skill tracks carry content the server
-  publishes, not actions. An edge SHOULD record a state-read record
-  when an agent uses such content in a later action, and the later
-  action cites it, so context provenance follows data from a tool into
-  a decision.
+Catalog, resources, prompts, and skills:
+: The catalog, resource, prompt, and skill tracks carry content that
+  the server publishes, not actions, and relays serve them from cache.
+  Tool definitions and client-executed skill instructions steer the
+  model, so an edge SHOULD record a state-read record when an agent
+  uses such content, and the later action cites it. Context provenance
+  then follows data from a server into a decision. A server-executed
+  skill (skills/invoke) and a task are requests like tools/call, and
+  are recorded the same way.
 
 ## A2A and MCP over HTTP
 
 A2A requests and MCP Streamable HTTP requests carry a Trail-Record
 field as in {{http-calls}}. The responder's record is carried in the
 response, or, for a streamed response, in the event that completes the
-exchange. Records are appended to trails on whichever evidence plane
-the deployment uses ({{hybrid}}).
+exchange. When the message carries a PACE dialog reference, in MCP
+`_meta` or in A2A message metadata, the record carries the same values
+in dialog-ref. Records are appended to trails on whichever evidence
+plane the deployment uses ({{hybrid}}).
 
 # Trails, Checkpoints, and Witnesses {#trails}
 
@@ -1135,7 +1237,9 @@ trail-id and records track, for example one per tenant.
 An edge that loses its trail state MUST start a new trail with a new
 trail-id, MUST record a restart record in the new trail that names the
 old trail-id and last known checkpoint, and MUST NOT reuse an old
-trail-id.
+trail-id. A party changes its pseudonym the same way: it starts a new
+trail under the new pseudonym, with a restart record that names the
+old trail-id, so that witnesses keep the history connected.
 
 ## Checkpoints {#checkpoints}
 
@@ -1154,6 +1258,10 @@ tree-head = [
 ~~~
 {: #fig-tree-head title="Checkpoint body"}
 
+tree-size and root-hash cover every record before the checkpoint. The
+checkpoint itself is the leaf at index tree-size, and the next
+checkpoint covers it.
+
 A checkpoint is a record made by the trail producer about its own
 trail. It is not a COSE Receipt: TRAIL trails are not Transparency
 Services, and a party proves inclusion of a record with an {{RFC9162}}
@@ -1162,9 +1270,7 @@ operates a SCITT Transparency Service MAY additionally register records
 and issue COSE Receipts {{RFC9942}} for them; TRAIL does not depend on
 that.
 
-The epoch length is set by policy. A witness MAY ask for an early
-checkpoint with REQUEST_UPDATE and NEW_GROUP_REQUEST, when the track
-sets DYNAMIC_GROUPS.
+The epoch length is set by policy.
 
 ## Witnesses {#witnesses}
 
@@ -1176,11 +1282,13 @@ A witness reads a party's trail. For each checkpoint it:
 * checks that the new tree is consistent with the last tree head it
   cosigned for that trail;
 
-* countersigns the checkpoint with a COSE countersignature {{RFC9338}};
-  and
+* countersigns the checkpoint with a COSE countersignature {{RFC9338}}
+  whose protected header carries CWT Claims with iat, the time of
+  cosigning; and
 
-* publishes the countersignature in its own trail and as a directed
-  record for the party.
+* appends a record of kind cosignature to its own trail, whose body is
+  the countersignature with the trail-id and tree size it covers, and
+  sends the countersignature to the party as a directed record.
 
 A witness MUST NOT countersign two different roots for the same trail
 and tree size. Two such countersignatures are proof that the witness
@@ -1195,7 +1303,7 @@ The party copies its latest cosigned checkpoint into its state
 snapshot, so that any peer can check it with one subscription or
 fetch.
 
-## Archives
+## Archives {#archives}
 
 MOQT relays are not required to cache. Each deployment MUST name at
 least one archive for every witness. An archive reads trails and serves
@@ -1235,7 +1343,9 @@ bound how far a false record can go unnoticed.
 
 A party's state carries its current self-description, its directives
 (authorities), and its grants (operators). Each snapshot is a
-COSE_Sign1 signed by the party's key, whose payload is:
+COSE_Sign1 signed by the party's key. Its protected header is the same
+as an Action Record's, with typ `application/trail-state+cbor`. Its
+payload is:
 
 ~~~ cddl
 trail-state = {
@@ -1264,14 +1374,16 @@ directive = {
 
 directive-type = &(
   policy: 1,            ; value: hash and location of a policy bundle
-  hold: 2,              ; stop matching actions
-  require-level: 3,     ; minimum attestation level
+  hold: 2,              ; stop matching actions; no value
+  require-level: 3,     ; value: level, the minimum
   require-witness: 4,   ; value: require-witness, below
-  require-gate: 5,      ; matching actions need approval
-  require-admission: 6, ; matching agents need an admission token
+  require-gate: 5,      ; value: [+ tstr], the approvers
+  require-admission: 6, ; value: tstr, the admission issuer
   freshness-budget: 7,  ; value: freshness-budget, below
-  require-record: 8     ; matching calls must carry a valid record
+  require-record: 8     ; matching calls carry a record; no value
 )
+
+level = &( software: 0, tee: 1, isolated: 2 )
 
 selector = {
   ? 1 => [+ bstr],              ; party pseudonyms
@@ -1291,11 +1403,16 @@ grant = {
 ~~~
 {: #fig-state title="State snapshot"}
 
+A selector matches an action when every member present in it matches.
+A member matches when any of its values matches. An absent member
+matches everything.
+
 Policy bundles, which can be large, are referenced from directives by
 hash. The bundle itself is a record in the authority's trail, and edges
-fetch it once. The policy claim of every Action Record is the hash of
-the set of directives the edge applied, so "it was allowed" can be
-checked later.
+fetch it once. The policy claim of every Action Record is the SHA-256
+hash of the deterministically encoded array of
+`[authority, directive-id]` pairs for the directives the edge applied,
+sorted by their encoding, so "it was allowed" can be checked later.
 
 An authority's directives apply only within the grant its operator
 gives it. An edge MUST ignore any directive that falls outside the
@@ -1339,9 +1456,11 @@ Downstream freshness (authority to cell):
 Upstream freshness (cell to witness):
 : For every require-witness directive that applies, a cell's latest
   checkpoint MUST carry countersignatures from at least k of the named
-  witnesses, each no older than the directive's max-age. If it does not, the edge MUST NOT perform
-  covered actions except as allowed by degraded mode, and receivers
-  MUST reject calls from that cell that the directive covers.
+  witnesses, each with an iat no older than the directive's max-age.
+  If it does
+  not, the edge MUST NOT perform covered actions except as allowed by
+  degraded mode, and receivers MUST reject calls from that cell that
+  the directive covers.
 
 An authority keeps its snapshot fresh by republishing it, even when
 nothing changes. This is the heartbeat, and it proves that the
@@ -1357,10 +1476,6 @@ agent calling service Z must be monitored by regulator R" is a
 require-witness directive from R, with Z as the counterparty in its
 selector. If R stops watching, its cosignatures stop, the callers'
 checkpoints age out, and Z's edge rejects their calls.
-
-Pausing MUST also be triggered when a subscription to a required state
-track ends with PUBLISH_DONE, a stream reset, or REQUEST_ERROR and
-cannot be restored within the budget.
 
 ## Freshness Budgets per Action Class {#budgets}
 
@@ -1422,14 +1537,14 @@ action and:
 * appends a gate-request record to its trail, whose body is the hash of
   the pending call and any redacted context the approver needs; and
 
-* sends the same record to the approver as a directed record, with
-  disclosures for the approver's classes.
+* sends the same record to each approver named in the directive, as a
+  directed record, with disclosures for that approver's classes.
 
 The approver publishes an approval record as a directed record for the
-cell, and appends it to its own trail. The approval cites the request
-by record identifier and states the decision. The edge continues only
-after a valid approval, and its send record cites it. When several
-approvals are required, the edge waits for each of them.
+cell, and appends it to its own trail. The approval cites the
+gate-request record with a cite of type peer-record and states the
+decision. The edge continues only after a valid approval from every
+named approver, and its send record cites each approval.
 
 A require-gate selector can cover every action an agent takes. Every
 such action then waits for a round trip to the approver, and stops if
@@ -1487,8 +1602,9 @@ payload hash) pairs of the Group, and appends a media-seal record that
 names the track, the Group, the Object count, and the root.
 
 An Action Record that depended on media cites it with a media-group
-cite (track, Group, root). Changing one frame breaks the link.
-Inclusion proofs let a verifier check single frames.
+cite that names the track, the Group, and the Object count, with the
+root as its hash. Changing one frame breaks the link. Inclusion proofs
+let a verifier check single frames.
 
 Live media MAY use Datagram Delivery Mode and delivery timeouts.
 Evidence checks MUST use complete Groups fetched from an archive.
@@ -1576,8 +1692,8 @@ what the agent claims it can do. TRAIL uses it as follows:
   binding JWT, MAY be included in the cell's state snapshot.
 
 * Context-specific disclosures and the key binding JWT are
-  per-verifier. They MUST travel inside the dialog (for example in PACE
-  OPEN or ACCEPT), not on a cached track.
+  per-verifier. They MUST travel inside the dialog, bound to the peer's
+  nonce ({{pace}}), not on a cached track.
 
 * An Action Record records the sd_hash of the presentation the
   counterparty relied on in sdh.
@@ -1609,9 +1725,9 @@ PUBLISH_NAMESPACE and PUBLISH only under its own prefix
 
 Trails, state, and directed records are not public. Only authorized
 parties read them, and directed records only by their recipient. Each
-swarm is expected to name an authorization server that issues the
-tokens for reading its trails and state; how a swarm names it is an
-open issue ({{open-issues}}). That authorization server SHOULD NOT be
+swarm has an authorization server that issues the tokens for reading
+its trails and state. How a swarm names it is an open issue
+({{open-issues}}). That authorization server SHOULD NOT be
 controlled by any single operator whose cells it covers, so that the
 operator cannot choose who oversees it. Every authority that holds a
 grant from an operator in the swarm, and every witness named in a
@@ -1626,9 +1742,9 @@ trails and state it needs.
 {: #tab-scopes title="Read access per role"}
 
 In C4M terms, a cell edge with pseudonym P gets a scope with actions
-PUBLISH_NAMESPACE and PUBLISH and namespace match ["trail", S, P], and a
-second scope with action SUBSCRIBE and track match on its own pseudonym
-under the to namespaces of its authorities. MOQT does not copy
+PUBLISH_NAMESPACE and PUBLISH and namespace match `["trail", S, P]`,
+and a second scope with action SUBSCRIBE and track match on its own
+pseudonym under the to namespaces of its authorities. MOQT does not copy
 authorization tokens from SUBSCRIBE_TRACKS into the PUBLISH messages it
 produces, so a relay MUST check each forwarded PUBLISH against the
 scope of the token presented with the SUBSCRIBE_TRACKS.
@@ -1698,8 +1814,8 @@ Relay or proxy:
   require-record the receiver then refuses the call.
 
 Authority:
-: Can read its granted classes, issue directives within its grant, and
-  cosign. Cannot read other classes, because disclosures are encrypted
+: Can read its granted classes and issue directives within its grant.
+  Cannot read other classes, because disclosures are encrypted
   to each recipient. Cannot act outside its grant.
 
 Hardware root:
@@ -1714,7 +1830,7 @@ so any key holder can produce Objects that decrypt. TRAIL never relies
 on them for origin. Disclosures use public-key encryption to each
 recipient, so authorities cannot forge disclosures for each other.
 
-## Replay
+## Replay {#replay}
 
 A replayed call carries a record identifier the receiver has already
 accepted. Receivers MUST keep the identifiers they accept for at least
@@ -1722,6 +1838,8 @@ the maximum record age they allow, and reject repeats for actions that
 are not idempotent. Over HTTP, receivers MUST also reject a created
 value outside their allowed clock skew. Even when a replay is not
 caught, the call-ref binding means it can only reproduce the same call.
+As PACE requires for its control messages, an edge MUST NOT send a
+call that is not idempotent in QUIC 0-RTT data.
 
 ## Denial of Service {#dos}
 
@@ -1769,9 +1887,12 @@ A system that can prove what every agent did can also show what every
 person using those agents did. TRAIL follows {{RFC6973}} and limits
 this:
 
-* Namespaces and resource paths contain only rotating pseudonyms. WIMSE
-  identifiers, dialog identifiers, and principals appear only in signed
-  payloads, and sensitive claims are redacted.
+* TRAIL namespaces and resource paths contain only pseudonyms, which
+  a party rotates by starting a new trail ({{trails}}). WIMSE
+  identifiers, dialog identifiers, and principals appear in TRAIL only
+  inside signed payloads, and sensitive claims are redacted. Dialog
+  identifiers that a binding such as PACE puts in its own track names
+  are covered by that binding's privacy rules.
 
 * Trails and state are readable only by authorized parties
   ({{read-access}}).
@@ -1815,14 +1936,49 @@ use a value from the application-specific range 0x3800 to 0x3FFF.
 ## Media Types
 
 IANA is requested to register `application/trail-record+cbor` and
-`application/trail-state+cbor`.
+`application/trail-state+cbor` in the "Media Types" registry, with
+the following template for each:
+
+Type name:
+: application
+
+Subtype names:
+: trail-record+cbor; trail-state+cbor
+
+Required and optional parameters:
+: none
+
+Encoding considerations:
+: binary (CBOR)
+
+Security considerations:
+: see {{security-considerations}}
+
+Interoperability considerations:
+: none
+
+Published specification:
+: this document
+
+Applications that use this media type:
+: TRAIL edges, authorities, witnesses, and verifiers
+
+Fragment identifier considerations:
+: as for application/cbor
+
+Change controller:
+: IETF
 
 ## TRAIL Registries
 
 IANA is requested to create the registries "TRAIL Record Kinds",
 "TRAIL Outcomes", "TRAIL Call Reference Types", "TRAIL Directive
-Types", and "TRAIL Cite Types", with the initial values in
-{{fig-record}} and {{fig-state}} and a Specification Required policy.
+Types", "TRAIL Cite Types", "TRAIL Record Members", "TRAIL State
+Members", "TRAIL Context Hash Members", and "TRAIL Selector Members",
+with the initial values in {{fig-record}} and {{fig-state}} and a
+Specification Required policy. The member registries cover the
+integer keys of the trail-record, trail-state, context-hashes, and
+selector maps, so that extensions do not collide.
 
 --- back
 
@@ -1862,11 +2018,12 @@ all of them base on COSE or SCITT.
 ## A Gated Payment Across Operators
 
 1. Operator O grants financial regulator F the directive types
-   require-gate and hold for action class "payment", and data class
-   "finance". The grant is in O's state.
+   require-gate, require-level, and hold for action class "payment",
+   and data class "finance". The grant is in O's state.
 
 2. F's state contains require-gate for class "payment" above a
-   threshold, and require-level of isolated for the same class.
+   threshold, naming F as approver, and require-level of `isolated`
+   for the same class.
 
 3. Agent A in cell C_A, in dialog D, asks to send a payment instruction
    to agent B.
@@ -1932,7 +2089,8 @@ reviewed this document.
   addition to edges carrying them in their state.
 
 * Extensions needed by further use cases, tracked in the issue
-  tracker: holds that match everything descending from an input,
+  tracker: holds that match everything descending from an input or
+  from a PACE dialog through its parent_dialog_ids,
   gate responses that substitute an action, approvals signed with a
   passkey, records that cite a model server's attestation, and
   admission tokens that meter spend.
