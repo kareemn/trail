@@ -136,17 +136,18 @@ informative:
 
 AI agents call other agents and tools across organizational boundaries,
 but the records of what they did are kept by the operators whose conduct
-they describe, and the parties overseeing them learn of problems only
-afterwards. TRAIL makes this communication auditable and revocable by
-parties other than the operator. An enforcement point outside the agent,
-the edge, signs each call as a COSE Action Record and appends it to a
-tamper-evident trail that witnesses countersign. Authorities read the
-trails and publish rules that the edge enforces on every call: require
-approval, refuse an action, stop an agent, or cap how many agents run
-across machines. The edge lets traffic through only while it holds
-current state from each authority and a recent witness countersignature,
-so an authority that goes silent, or a trail that nobody is witnessing,
-stops the agent. TRAIL defines bindings to HTTP and to Media over QUIC
+the records describe, and the parties overseeing them learn of problems
+only afterwards. TRAIL makes this communication auditable and revocable
+by parties other than the operator. An enforcement point outside the
+agent and its sandbox, the edge, signs each call as a COSE Action
+Record, which the receiver keeps, and appends it to a tamper-evident
+trail that witnesses countersign. Authorities read the trails and
+publish rules that the edge enforces on every call: require approval,
+refuse an action, stop an agent, or cap how many agents run across
+machines. The edge lets traffic through only while it holds current
+state from each authority and a recent witness countersignature, so an
+authority that goes silent, or a trail that nobody is witnessing, stops
+the agent. TRAIL defines bindings to HTTP and to Media over QUIC
 Transport (MOQT) that produce the same evidence; over MOQT, holds reach
 edges as soon as they are published.
 
