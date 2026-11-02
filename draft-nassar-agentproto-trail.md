@@ -5,7 +5,7 @@ category: std
 docname: draft-nassar-agentproto-trail-latest
 submissiontype: IETF
 number:
-date: 2026-10-31
+date: 2026-11-02
 consensus: true
 v: 3
 workgroup: "Agent Communication Protocols"
@@ -1457,10 +1457,9 @@ Upstream freshness (cell to witness):
 : For every require-witness directive that applies, a cell's latest
   checkpoint MUST carry countersignatures from at least k of the named
   witnesses, each with an iat no older than the directive's max-age.
-  If it does
-  not, the edge MUST NOT perform covered actions except as allowed by
-  degraded mode, and receivers MUST reject calls from that cell that
-  the directive covers.
+  If it does not, the edge MUST NOT perform covered actions except as
+  allowed by degraded mode, and receivers MUST reject calls from that
+  cell that the directive covers.
 
 An authority keeps its snapshot fresh by republishing it, even when
 nothing changes. This is the heartbeat, and it proves that the
@@ -1776,7 +1775,7 @@ This section follows {{RFC7942}}. No implementation is reported in this
 version. {{open-issues}} lists the measurements the authors intend to
 publish.
 
-# Security Considerations
+# Security Considerations {#security-considerations}
 
 This section follows {{RFC3552}}.
 
