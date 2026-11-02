@@ -9,20 +9,21 @@
 <meta content="Suhas Nandakumar" name="author">
 <meta content="Cullen Jennings" name="author">
 <meta content="
-       TRAIL makes agent-to-agent and agent-to-tool communication auditable and
-revocable: the parties that oversee it can stop or gate it while it
-runs. An enforcement point outside the agent, the edge, signs each call
-as a COSE Action Record. That one record authenticates the call, lets
-the receiver prove what it was sent, and is appended to a tamper-evident
-trail that witnesses countersign. The edge lets an agent's traffic
-through only while it holds current state from every authority it
-answers to and a recent witness countersignature on its trail, so an
-authority that goes silent, or a trail that nobody is witnessing, stops
-the agent. TRAIL defines bindings to HTTP and to Media over QUIC
-Transport (MOQT) that produce the same evidence. With MOQT, each record
-is also tied to exactly one Object, holds reach edges as soon as they
-are published, and trails reach authorized parties that the operator did
-not list in advance. 
+       AI agents call other agents and tools across organizational boundaries,
+but the records of what they did are kept by the operators whose conduct
+they describe, and the parties overseeing them learn of problems only
+afterwards. TRAIL makes this communication auditable and revocable by
+parties other than the operator. An enforcement point outside the agent,
+the edge, signs each call as a COSE Action Record and appends it to a
+tamper-evident trail that witnesses countersign. Authorities read the
+trails and publish rules that the edge enforces on every call: require
+approval, refuse an action, stop an agent, or cap how many agents run
+across machines. The edge lets traffic through only while it holds
+current state from each authority and a recent witness countersignature,
+so an authority that goes silent, or a trail that nobody is witnessing,
+stops the agent. TRAIL defines bindings to HTTP and to Media over QUIC
+Transport (MOQT) that produce the same evidence; over MOQT, holds reach
+edges as soon as they are published. 
     " name="description">
 <meta content="xml2rfc 3.31.0" name="generator">
 <meta content="agent communication" name="keyword">
@@ -1109,20 +1110,21 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <h1 id="title">TRAIL: Tamper-evident Records for Agent Interactions and Liveness</h1>
 <section id="section-abstract">
       <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
-<p id="section-abstract-1">TRAIL makes agent-to-agent and agent-to-tool communication auditable and
-revocable: the parties that oversee it can stop or gate it while it
-runs. An enforcement point outside the agent, the edge, signs each call
-as a COSE Action Record. That one record authenticates the call, lets
-the receiver prove what it was sent, and is appended to a tamper-evident
-trail that witnesses countersign. The edge lets an agent's traffic
-through only while it holds current state from every authority it
-answers to and a recent witness countersignature on its trail, so an
-authority that goes silent, or a trail that nobody is witnessing, stops
-the agent. TRAIL defines bindings to HTTP and to Media over QUIC
-Transport (MOQT) that produce the same evidence. With MOQT, each record
-is also tied to exactly one Object, holds reach edges as soon as they
-are published, and trails reach authorized parties that the operator did
-not list in advance.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+<p id="section-abstract-1">AI agents call other agents and tools across organizational boundaries,
+but the records of what they did are kept by the operators whose conduct
+they describe, and the parties overseeing them learn of problems only
+afterwards. TRAIL makes this communication auditable and revocable by
+parties other than the operator. An enforcement point outside the agent,
+the edge, signs each call as a COSE Action Record and appends it to a
+tamper-evident trail that witnesses countersign. Authorities read the
+trails and publish rules that the edge enforces on every call: require
+approval, refuse an action, stop an agent, or cap how many agents run
+across machines. The edge lets traffic through only while it holds
+current state from each authority and a recent witness countersignature,
+so an authority that goes silent, or a trail that nobody is witnessing,
+stops the agent. TRAIL defines bindings to HTTP and to Media over QUIC
+Transport (MOQT) that produce the same evidence; over MOQT, holds reach
+edges as soon as they are published.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
 </section>
 <section class="note rfcEditorRemove" id="section-note.1">
       <h2 id="name-about-this-document">
@@ -1536,10 +1538,10 @@ operator whose conduct they describe, so they can be dropped,
 reordered, or rewritten without detection.<a href="#section-1.1-2.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-1.1-2.3">
-            <p id="section-1.1-2.3.1">Parties with oversight rights cannot observe activity while it
-happens, pause or stop it, or require approval before an action
-takes effect. Revoking an agent is hardest when the agent is no
-longer reachable.<a href="#section-1.1-2.3.1" class="pilcrow">¶</a></p>
+            <p id="section-1.1-2.3.1">Parties with oversight rights learn of problems only afterwards. They
+cannot observe activity while it happens, pause or stop it, or require
+approval before an action takes effect. Revoking an agent is hardest
+when the agent is no longer reachable.<a href="#section-1.1-2.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-1.1-2.4">
             <p id="section-1.1-2.4.1">Limits that apply across many nodes, such as a cap on concurrent
@@ -1601,7 +1603,8 @@ witnessed.<a href="#section-1.2-2.12.1" class="pilcrow">¶</a></p>
 <dt id="section-1.2-2.13">Live oversight:</dt>
           <dd style="margin-left: 1.5em" id="section-1.2-2.14">
             <p id="section-1.2-2.14.1">Authorities, including ones the operator did not list in advance,
-can watch, gate, hold, and stop activity while it runs.<a href="#section-1.2-2.14.1" class="pilcrow">¶</a></p>
+can watch activity while it runs, require approval before an action,
+refuse actions, and stop agents.<a href="#section-1.2-2.14.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 <dt id="section-1.2-2.15">Bounded scope:</dt>
@@ -2039,8 +2042,11 @@ affect actions only through an authority's require-witness directive
 (<a href="#freshness" class="auto internal xref">Section 9.3</a>).<a href="#section-2.2-2.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-2.2-2.2">
-            <p id="section-2.2-2.2.1">An authority sets rules, issues holds, approves gated actions, and
-reads the claims its grant covers.<a href="#section-2.2-2.2.1" class="pilcrow">¶</a></p>
+            <p id="section-2.2-2.2.1">An authority reads the claims its grant covers and publishes rules
+that edges enforce on every call. It can require its approval before
+an action (require-gate), refuse actions (policy), stop an agent
+(hold), or cap how many agents run across machines
+(require-admission).<a href="#section-2.2-2.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-2.2-3">An edge signs its own records, so its signature alone cannot show
