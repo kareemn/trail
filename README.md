@@ -58,6 +58,7 @@ Operators run agents in sandboxes on machines. The edge is where traffic leaves 
 | grant | A right an operator gives an authority: which directives it may issue, for what, and which fields it may read. |
 | action class, data class | A number that groups actions by impact, such as payments; a label on a hidden field, such as an amount. |
 | authority, witness | Sets rules within its grants; checks trails are complete and cosigns them. |
+| cosignature | A witness’s signature on a checkpoint: it holds every record up to that point, and the trail only grew since the last one it signed. An edge whose cosignatures get too old pauses. |
 | admission issuer, admission token | A party that hands out a fixed number of tokens; the token an agent’s records cite. |
 
 ### Where the edge is decides the attestation level

@@ -224,6 +224,7 @@ table.track th { font-weight: 600; border-top: 0; }
       <tr><td>grant</td><td>A right an operator gives an authority: which directives it may issue, for what, and which fields it may read.</td></tr>
       <tr><td>action class, data class</td><td>A number that groups actions by impact, such as payments; a label on a hidden field, such as an amount.</td></tr>
       <tr><td>authority, witness</td><td>Sets rules within its grants; checks trails are complete and cosigns them.</td></tr>
+      <tr><td>cosignature</td><td>A witness’s signature on a checkpoint: it holds every record up to that point, and the trail only grew since the last one it signed. An edge whose cosignatures get too old pauses.</td></tr>
       <tr><td>admission issuer, admission token</td><td>A party that hands out a fixed number of tokens; the token an agent’s records cite.</td></tr>
     </tbody>
   </table></div>

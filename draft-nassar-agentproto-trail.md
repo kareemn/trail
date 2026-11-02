@@ -352,6 +352,11 @@ Checkpoint:
 : An Action Record that signs the size and root of its own trail at the
   end of an epoch, covering every record before it.
 
+Cosignature:
+: A witness's countersignature on a checkpoint. It states that the
+  witness holds every record the checkpoint covers and that the trail
+  extends the last checkpoint the witness cosigned ({{witnesses}}).
+
 Epoch:
 : The span of a trail that ends with a checkpoint. Over MOQT, an epoch
   is one Group of the records track.
@@ -493,6 +498,16 @@ TRAIL separates two jobs:
 
 * An authority sets rules, issues holds, approves gated actions, and
   reads the claims its grant covers.
+
+An edge signs its own records, so its signature alone cannot show
+that it keeps one history or that it dropped nothing. At the end of
+each epoch the edge signs a checkpoint over its whole trail, and a
+witness that holds every record countersigns it. The cosignature does
+three things. It fixes one history: a witness never cosigns two roots
+for the same trail and size, so a conflicting checkpoint is proof of
+equivocation. It anchors inclusion proofs for single records. And it
+shows that someone is watching: an edge whose cosignatures grow stale
+pauses, so stopping the witness stops the agent ({{freshness}}).
 
 Keeping them apart gives least privilege, lets witnesses check
 authorities as well as operators, and lets several witnesses back one
