@@ -134,18 +134,20 @@ informative:
 
 --- abstract
 
-TRAIL makes agent-to-agent and agent-to-tool communication auditable
-and revocable. An enforcement point outside the agent, the edge, signs
-each call as a COSE Action Record. That one record authenticates the
-call, lets the receiver prove what it was sent, and is appended to a
-tamper-evident trail that witnesses countersign. The edge lets an
-agent's traffic through only while it holds current state from every
-authority it answers to and a recent witness countersignature on its
-trail. TRAIL defines bindings to Media over QUIC Transport (MOQT) and to
-HTTP. Both produce the same evidence. The MOQT binding also binds each
-record to exactly one Object, pushes holds to edges as soon as they are
-published, and delivers trails to authorized parties the operator did
-not enumerate.
+TRAIL makes agent-to-agent and agent-to-tool communication auditable and
+revocable: the parties that oversee it can stop or gate it while it
+runs. An enforcement point outside the agent, the edge, signs each call
+as a COSE Action Record. That one record authenticates the call, lets
+the receiver prove what it was sent, and is appended to a tamper-evident
+trail that witnesses countersign. The edge lets an agent's traffic
+through only while it holds current state from every authority it
+answers to and a recent witness countersignature on its trail, so an
+authority that goes silent, or a trail that nobody is witnessing, stops
+the agent. TRAIL defines bindings to HTTP and to Media over QUIC
+Transport (MOQT) that produce the same evidence. With MOQT, each record
+is also tied to exactly one Object, holds reach edges as soon as they
+are published, and trails reach authorized parties that the operator did
+not list in advance.
 
 --- middle
 
