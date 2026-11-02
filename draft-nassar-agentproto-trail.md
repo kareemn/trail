@@ -134,18 +134,22 @@ informative:
 
 --- abstract
 
-TRAIL makes agent-to-agent and agent-to-tool communication auditable
-and revocable. An enforcement point outside the agent, the edge, signs
-each call as a COSE Action Record. That one record authenticates the
-call, lets the receiver prove what it was sent, and is appended to a
-tamper-evident trail that witnesses countersign. The edge lets an
-agent's traffic through only while it holds current state from every
-authority it answers to and a recent witness countersignature on its
-trail. TRAIL defines bindings to Media over QUIC Transport (MOQT) and to
-HTTP. Both produce the same evidence. The MOQT binding also binds each
-record to exactly one Object, pushes holds to edges as soon as they are
-published, and delivers trails to authorized parties the operator did
-not enumerate.
+AI agents call other agents and tools across organizational boundaries,
+but the records of what they did are kept by the operators whose conduct
+the records describe, and the parties overseeing them learn of problems
+only afterwards. TRAIL makes this communication auditable and revocable
+by parties other than the operator. An enforcement point outside the
+agent and its sandbox, the edge, signs each call as a COSE Action
+Record, which the receiver keeps, and appends it to a tamper-evident
+trail that witnesses countersign. Authorities read the trails and
+publish rules that the edge enforces on every call: require approval,
+refuse an action, stop an agent, or cap how many agents run across
+machines. The edge lets traffic through only while it holds current
+state from each authority and a recent witness countersignature, so an
+authority that goes silent, or a trail that nobody is witnessing, stops
+the agent. TRAIL defines bindings to HTTP and to Media over QUIC
+Transport (MOQT) that produce the same evidence; over MOQT, holds reach
+edges as soon as they are published.
 
 --- middle
 
@@ -177,10 +181,10 @@ for those calls do not. Today:
   operator whose conduct they describe, so they can be dropped,
   reordered, or rewritten without detection.
 
-* Parties with oversight rights cannot observe activity while it
-  happens, pause or stop it, or require approval before an action
-  takes effect. Revoking an agent is hardest when the agent is no
-  longer reachable.
+* Parties with oversight rights learn of problems only afterwards. They
+  cannot observe activity while it happens, pause or stop it, or require
+  approval before an action takes effect. Revoking an agent is hardest
+  when the agent is no longer reachable.
 
 * Limits that apply across many nodes, such as a cap on concurrent
   agents in a swarm, cannot be enforced because no node sees the total.
@@ -220,8 +224,9 @@ Liveness:
   witnessed.
 
 Live oversight:
-: Authorities, including ones the operator did not enumerate, can
-  watch, gate, hold, and stop activity while it runs.
+: Authorities, including ones the operator did not list in advance,
+  can watch activity while it runs, require approval before an action,
+  refuse actions, and stop agents.
 
 Bounded scope:
 : Limits that span many nodes can be counted and enforced.
@@ -496,8 +501,11 @@ TRAIL separates two jobs:
   affect actions only through an authority's require-witness directive
   ({{freshness}}).
 
-* An authority sets rules, issues holds, approves gated actions, and
-  reads the claims its grant covers.
+* An authority reads the claims its grant covers and publishes rules
+  that edges enforce on every call. It can require its approval before
+  an action (require-gate), refuse actions (policy), stop an agent
+  (hold), or cap how many agents run across machines
+  (require-admission).
 
 An edge signs its own records, so its signature alone cannot show
 that it keeps one history or that it dropped nothing. At the end of
@@ -551,8 +559,9 @@ evidence plane, and for calls where both sides support it. A MOQT
 Object has a stable name and cannot be changed once published
 {{MoQ-TRANSPORT}}, relays cannot strip Immutable Properties, the trail
 and the call share one session, and subscriptions push trails and
-state to parties the publisher did not enumerate. {{tab-http-losses}}
-compares each of these with HTTP. MOQT also provides:
+state to parties the publisher did not list in advance.
+{{tab-http-losses}} compares each of these with HTTP. MOQT also
+provides:
 
 History and live data under one name:
 : The same records track serves live records by SUBSCRIBE and past ones
@@ -979,7 +988,7 @@ call.
 | Stripping | Relays cannot remove Immutable Properties | An intermediary can drop the header field | require-record ({{core-rule}}): the receiver refuses the call, so stripping fails closed |
 | Single commit point | Trail and call on one session | Two systems | Acknowledged append before send |
 | Delivery of holds | Pushed on subscription | Poll or SSE | Per-class freshness budgets bound the delay ({{budgets}}) |
-| Trails for parties not enumerated | SUBSCRIBE_TRACKS on a prefix | Static tiles, pulled | Discovery through witness trails ({{http-trails}}) |
+| Trails for parties not listed in advance | SUBSCRIBE_TRACKS on a prefix | Static tiles, pulled | Discovery through witness trails ({{http-trails}}) |
 {: #tab-http-losses title="HTTP binding losses and mitigations"}
 
 ## Hybrid Deployment {#hybrid}
@@ -2006,9 +2015,11 @@ workloads:
   and interaction traceability across domains.
 
 TRAIL differs in four ways: the evidence is produced outside the agent
-at an attested edge; the edge acts only while its oversight is fresh;
-trails reach authorized parties the operator did not enumerate; and
-control (holds, gates, admission) returns on the same evidence plane.
+at an attested edge; the edge acts only while its oversight is fresh,
+so an authority that goes silent, or a trail that nobody is witnessing,
+stops the agent; trails reach authorized parties the operator did not
+list in advance; and control (holds, gates, admission) returns on the
+same evidence plane.
 TRAIL aims to converge with these drafts on the record envelope, which
 all of them base on COSE or SCITT.
 
