@@ -22,7 +22,7 @@ record to exactly one Object, pushes holds to edges as soon as they are
 published, and delivers trails to authorized parties the operator did
 not enumerate. 
     " name="description">
-<meta content="xml2rfc 3.31.0" name="generator">
+<meta content="xml2rfc 3.35.0" name="generator">
 <meta content="agent communication" name="keyword">
 <meta content="audit" name="keyword">
 <meta content="revocation" name="keyword">
@@ -31,18 +31,19 @@ not enumerate.
 <meta content="HTTP" name="keyword">
 <meta content="draft-nassar-agentproto-trail-latest" name="ietf.draft">
 <!-- Generator version information:
-  xml2rfc 3.31.0
-    Python 3.14.2
-    ConfigArgParse 1.7.1
+  xml2rfc 3.35.0
+    Python 3.14.3
+    ConfigArgParse 1.9.0
     google-i18n-address 3.1.1
     intervaltree 3.2.1
     Jinja2 3.1.6
-    lxml 6.0.2
-    platformdirs 4.9.2
+    lxml 6.1.3
+    natsort 8.4.0
+    platformdirs 4.14.3
     pycountry 26.2.16
     PyYAML 6.0.3
-    requests 2.32.5
-    wcwidth 0.6.0
+    requests 2.34.2
+    wcwidth 0.9.4
 -->
 <link href="draft-nassar-agentproto-trail.xml" rel="alternate" type="application/rfc+xml">
 <link href="#copyright" rel="license">
@@ -2802,32 +2803,42 @@ protocol's own logs. They are not used for any TRAIL check.<a href="#section-7.1
           <h4 id="name-layering">
 <a href="#section-7.2.1" class="section-number selfRef">7.2.1. </a><a href="#name-layering" class="section-name selfRef">Layering</a>
           </h4>
-<p id="section-7.2.1-1">TRAIL is not a layer of the PACE stack. It runs at the edge, beside
-PACE. It attaches an Action Record to each PACE Object the edge
-publishes, and it keeps its own tracks under ("trail", S, P) on the
-same MOQT relays.<a href="#section-7.2.1-1" class="pilcrow">¶</a></p>
-<span id="name-trail-beside-the-pace-layer"></span><div id="fig-pace-layers">
+<p id="section-7.2.1-1">TRAIL is not part of the PACE protocol. PACE messages, tracks, and
+dialog semantics are unchanged, and PACE works without it. TRAIL runs
+at the edge, in the Object path below the PACE MOQT binding: the edge
+is the Original Publisher of each Object the binding produces
+(<a href="#property" class="auto internal xref">Section 5.4</a>). On the way out, the edge checks the Object against
+cached state, signs an Action Record whose call-ref names the Object's
+track, Location, and payload, appends the record to its trail, and
+publishes the Object with TRAIL_RECORD. On the way in, it verifies the
+record before the binding sees the Object. The edge also publishes its
+own tracks under ("trail", S, P) on the same relays.<a href="#section-7.2.1-1" class="pilcrow">¶</a></p>
+<span id="name-trail-in-the-pace-object-pa"></span><div id="fig-pace-layers">
 <figure id="figure-5">
             <div class="alignLeft art-ascii-art art-text artwork" id="section-7.2.1-2.1">
 <pre>
-+------------------------------------+  +------------------------+
-| Application protocols              |  | TRAIL at the edge      |
-| (A2A, MCP, ...)                    |  |                        |
-+------------------------------------+  | records each message,  |
-| PACE dialog management             |  | with dialog-ref        |
-| dialog-id, generation, lifecycle   |  |                        |
-+------------------------------------+  | TRAIL_RECORD on each   |
-| PACE MOQT binding                  |  | dialog track Object    |
-| ("pace","dialogs",D,agent) tracks  |  +------------------------+
-+------------------------------------+  | TRAIL tracks           |
-| MOQT: relays, namespaces, C4M      |  | ("trail",S,P): records,|
-+------------------------------------+  | state, to              |
-| QUIC / WebTransport                |  +------------------------+
++------------------------------------+
+| Application protocols (A2A, MCP)   |
++------------------------------------+
+| PACE dialog management             |
+| dialog-id, generation, lifecycle   |
++------------------------------------+
+| PACE MOQT binding                  |
+| ("pace","dialogs",D,agent) tracks  |
++====================================+
+| TRAIL at the edge                  |
+| out: check, sign, append, attach   |
+|      TRAIL_RECORD                  |--+ "records", "state", "to"
+| in:  verify, check, append recv    |  |  under ("trail",S,P)
++====================================+  |
+| MOQT: relays, namespaces, C4M      |&lt;-+
++------------------------------------+
+| QUIC / WebTransport                |
 +------------------------------------+
 </pre>
 </div>
 <figcaption><a href="#figure-5" class="selfRef">Figure 5</a>:
-<a href="#name-trail-beside-the-pace-layer" class="selfRef">TRAIL beside the PACE layers</a>
+<a href="#name-trail-in-the-pace-object-pa" class="selfRef">TRAIL in the PACE Object path at the edge</a>
             </figcaption></figure>
 </div>
 <p id="section-7.2.1-3">PACE correlates a dialog and manages its lifecycle. TRAIL proves what
@@ -2856,12 +2867,12 @@ PACE dialog identifier.<a href="#section-7.2.1-3" class="pilcrow">¶</a></p>
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">Sender authentication</td>
                 <td class="text-left" rowspan="1" colspan="1">credentials in control messages; mechanism chosen by the deployment</td>
-                <td class="text-left" rowspan="1" colspan="1">TRAIL_RECORD signs every Object, control and content</td>
+                <td class="text-left" rowspan="1" colspan="1">TRAIL_RECORD signs each request, response, result, and control Object that changes the dialog or stops work, end to end</td>
               </tr>
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">Records</td>
                 <td class="text-left" rowspan="1" colspan="1">None</td>
-                <td class="text-left" rowspan="1" colspan="1">Action Records in witnessed trails</td>
+                <td class="text-left" rowspan="1" colspan="1">Action Records in witnessed trails, on "records" tracks</td>
               </tr>
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">Stopping a participant</td>

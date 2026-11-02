@@ -1003,28 +1003,38 @@ protocol's own logs. They are not used for any TRAIL check.
 
 ### Layering {#pace-layers}
 
-TRAIL is not a layer of the PACE stack. It runs at the edge, beside
-PACE. It attaches an Action Record to each PACE Object the edge
-publishes, and it keeps its own tracks under ("trail", S, P) on the
-same MOQT relays.
+TRAIL is not part of the PACE protocol. PACE messages, tracks, and
+dialog semantics are unchanged, and PACE works without it. TRAIL runs
+at the edge, in the Object path below the PACE MOQT binding: the edge
+is the Original Publisher of each Object the binding produces
+({{property}}). On the way out, the edge checks the Object against
+cached state, signs an Action Record whose call-ref names the Object's
+track, Location, and payload, appends the record to its trail, and
+publishes the Object with TRAIL_RECORD. On the way in, it verifies the
+record before the binding sees the Object. The edge also publishes its
+own tracks under ("trail", S, P) on the same relays.
 
 ~~~ ascii-art
-+------------------------------------+  +------------------------+
-| Application protocols              |  | TRAIL at the edge      |
-| (A2A, MCP, ...)                    |  |                        |
-+------------------------------------+  | records each message,  |
-| PACE dialog management             |  | with dialog-ref        |
-| dialog-id, generation, lifecycle   |  |                        |
-+------------------------------------+  | TRAIL_RECORD on each   |
-| PACE MOQT binding                  |  | dialog track Object    |
-| ("pace","dialogs",D,agent) tracks  |  +------------------------+
-+------------------------------------+  | TRAIL tracks           |
-| MOQT: relays, namespaces, C4M      |  | ("trail",S,P): records,|
-+------------------------------------+  | state, to              |
-| QUIC / WebTransport                |  +------------------------+
++------------------------------------+
+| Application protocols (A2A, MCP)   |
++------------------------------------+
+| PACE dialog management             |
+| dialog-id, generation, lifecycle   |
++------------------------------------+
+| PACE MOQT binding                  |
+| ("pace","dialogs",D,agent) tracks  |
++====================================+
+| TRAIL at the edge                  |
+| out: check, sign, append, attach   |
+|      TRAIL_RECORD                  |--+ "records", "state", "to"
+| in:  verify, check, append recv    |  |  under ("trail",S,P)
++====================================+  |
+| MOQT: relays, namespaces, C4M      |<-+
++------------------------------------+
+| QUIC / WebTransport                |
 +------------------------------------+
 ~~~
-{: #fig-pace-layers title="TRAIL beside the PACE layers"}
+{: #fig-pace-layers title="TRAIL in the PACE Object path at the edge"}
 
 PACE correlates a dialog and manages its lifecycle. TRAIL proves what
 each participant did in it and enforces rules at the edge. PACE
@@ -1034,8 +1044,8 @@ PACE dialog identifier.
 | Concern | PACE | TRAIL |
 |---|---|---|
 | Correlation | dialog-id and generation | dialog-ref in each signed record |
-| Sender authentication | credentials in control messages; mechanism chosen by the deployment | TRAIL_RECORD signs every Object, control and content |
-| Records | None | Action Records in witnessed trails |
+| Sender authentication | credentials in control messages; mechanism chosen by the deployment | TRAIL_RECORD signs each request, response, result, and control Object that changes the dialog or stops work, end to end |
+| Records | None | Action Records in witnessed trails, on "records" tracks |
 | Stopping a participant | REVOKE, sent by the controller | Hold, issued by an authority and applied at the edge |
 | Stopping work | CANCEL and CANCEL_ACK | Records both; require-gate stops work before it starts |
 | Approval evidence | Required for high-risk operations; format open | Approval record |

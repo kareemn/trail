@@ -280,6 +280,6 @@ Section numbers refer to `draft-nassar-agentproto-trail`.
 | Requiring a sender’s grants | Not specified | Open issue |
 | Killswitch, A1/B1 numbering | Page only | The draft keeps *hold* |
 | Scenario additions | Appendix D proposals | Open issue: which to specify |
-| Carrying TRAIL in PACE and MCP over MoQ | §7.2: TRAIL beside the PACE layers; §7.3: MCP client scopes and multi round-trip requests | Draft only; the page doesn’t cover protocol mappings |
+| Carrying TRAIL in PACE and MCP over MoQ | §7.2: TRAIL in the PACE Object path at the edge; §7.3: MCP client scopes and multi round-trip requests | Draft only; the page doesn’t cover protocol mappings |
 
 Kareem Nassar, Suhas Nandakumar, and Cullen Jennings. Revises Suhas Nandakumar’s earlier TRAIL draft.
