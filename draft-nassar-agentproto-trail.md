@@ -2128,5 +2128,5 @@ This document draws on discussions of PACE, MCP over MOQT, C4M, and
 SD-Card.
 
 The authors thank Kevin McMenamy, Rich Logan, Paul Bright-Thomas,
-Tim Evans, Brian Powell, and Faisal Siyavudeen for discussions and
-reading material.
+Tim Evans, Brian Powell, and Faisal Siyavudeen for taking the time to
+read drafts of this work, and for their questions and discussion.
