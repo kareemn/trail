@@ -166,13 +166,13 @@ table.track th { font-weight: 600; border-top: 0; }
     <span class="row" aria-hidden="true"><span class="cap">I</span><span class="rest">nteractions and</span></span>
     <span class="row" aria-hidden="true"><span class="cap">L</span><span class="rest">iveness</span></span>
   </h1>
-  <p class="lede">AI agents call other agents and tools across organizational boundaries, but stopping an agent still means reaching it, and the parties overseeing it learn of problems only afterwards. TRAIL is an IETF draft that turns this around: an agent keeps acting only while the parties it answers to can still reach it. Wherever agents run, an edge outside the agent’s sandbox signs each call, checks it against the rules those parties publish, and pauses the agent when one of them goes quiet, so a revocation that can’t be delivered still takes effect. Those parties don’t have to be the operator: a bank, a regulator, or a counterparty’s compliance team can approve, refuse, or stop actions, within rights the operator grants. TRAIL doesn’t decide whether an action is safe. It lets the parties that do decide act while the agent is still running.</p>
-  <p class="byline">Kareem Nassar, Suhas Nandakumar, and Cullen Jennings. Draft: <span class="mono">draft-nassar-agentproto-trail</span>.</p>
+  <p class="lede">AI agents call other agents and tools across administrative domains, but stopping an agent still means reaching it, and the parties responsible for it learn of problems only afterwards. TRAIL is an IETF draft that turns this around with a liveness rule: an agent keeps acting only while the parties it answers to can still reach it. Wherever agents run, an edge outside the agent’s sandbox signs each call and checks that it holds fresh signed state from each of those parties, pausing the agent when any of it goes stale, so a revocation that can’t be delivered still takes effect. Those parties (the draft calls them authorities) can sit outside the organization running the agent: a regulator, a bank, or an AI safety consortium. Within rights that organization grants, they can require approval, refuse an action, or hold an agent. TRAIL doesn’t decide whether an action is safe. It lets the parties that do decide act while the agent is still running.</p>
+  <p class="byline">Kareem Nassar, Suhas Nandakumar, and Cullen Jennings. Draft: <a href="https://datatracker.ietf.org/doc/draft-nassar-agentproto-trail/"><span class="mono">draft-nassar-agentproto-trail</span></a>. Discussion: <a href="mailto:agentproto@ietf.org">agentproto@ietf.org</a> (archive: <a href="https://mailarchive.ietf.org/arch/browse/agentproto/">mailarchive.ietf.org/arch/browse/agentproto</a>).</p>
 </header>
 
 <section id="legend">
   <h2>How to read the pictures</h2>
-  <p>Every animation uses the same layout: companies (operators) at the top, the evidence plane below them, and the parties that read it at the bottom. The same colors mean the same thing everywhere.</p>
+  <p>Every animation uses the same layout: organizations (operators) at the top, the evidence plane below them, and the parties that read it at the bottom. The same colors mean the same thing everywhere.</p>
   <ul class="legend">
     <li><span class="sw" style="--sw:#5A6370"></span><span><strong>Machine</strong>: the physical or virtual host</span></li>
     <li><span class="sw dash" style="--sw:#4E6A9E"></span><span><strong>Sandbox</strong>: where the agent runs</span></li>
@@ -180,7 +180,7 @@ table.track th { font-weight: 600; border-top: 0; }
     <li><span class="sw" style="--sw:#7AA2F7"></span><span><strong>Agent</strong>: the AI (model + tools)</span></li>
     <li><span class="sw" style="--sw:#FF9E64"></span><span><strong>Edge</strong>: where traffic leaves the cell</span></li>
     <li><span class="sw tag" style="--sw:#73DACA"></span><span><strong>Attestation level</strong>: under each edge, with its form</span></li>
-    <li><span class="sw dash" style="--sw:#8A9099"></span><span><strong>Operator</strong>: the company running the cells</span></li>
+    <li><span class="sw dash" style="--sw:#8A9099"></span><span><strong>Operator</strong>: the organization running the cells</span></li>
     <li><span class="sw tag" style="--sw:#E0C46C"></span><span><strong>Action Record</strong> (A1, B1: edge and number)</span></li>
     <li><span class="sw" style="--sw:#7DCFFF"></span><span><strong>Evidence plane</strong>, with one box per trail, state, or set of directed records</span></li>
     <li><span class="sw" style="--sw:#BB9AF7"></span><span><strong>Authority</strong>: e.g. Regulator R</span></li>
@@ -213,7 +213,7 @@ table.track th { font-weight: 600; border-top: 0; }
       <tr><td>edge</td><td>Where traffic leaves the cell. Holds the keys, checks rules, signs, records, and blocks.</td></tr>
       <tr><td>attestation level</td><td><code>software</code>, <code>tee</code>, or <code>isolated</code>: who can read the edge’s key, and what can go around it.</td></tr>
       <tr><td>verifier</td><td>Checks what holds an edge’s key and issues an Attestation Result (from RATS).</td></tr>
-      <tr><td>agent, principal, operator</td><td>The AI; the person it acts for; the company running it.</td></tr>
+      <tr><td>agent, principal, operator</td><td>The AI; the person it acts for; the organization running it.</td></tr>
       <tr><td>Action Record</td><td>The signed record of one action, written to the trail before the call leaves.</td></tr>
       <tr><td>trail, checkpoint</td><td>An edge’s records in order; a signed summary closing each stretch of it.</td></tr>
       <tr><td>epoch, archive</td><td>The stretch of a trail that one checkpoint closes; a service that stores trails and serves them to parties allowed to read them.</td></tr>
@@ -339,14 +339,14 @@ table.track th { font-weight: 600; border-top: 0; }
 </figure>
 <div class="draftcheck"><p class="uses"><strong>Uses:</strong> <a href="#h-y">admission tokens</a>, <a href="#h-c">records on both sides</a></p><p class="miss"><strong>Missing:</strong> metered tokens for spend and API budgets (Open Issues, Appendix D).</p></div>
 <h3 class="scene" id="worm">3. Stopping a prompt-injection worm<span class="verdict ext">Partly works</span></h3>
-<p>An injection spreads from Agent A to Agent B at another company. Records cite what was received, so Regulator R can follow the path and hold both agents by name.</p>
+<p>An injection spreads from Agent A to Agent B at another organization. Records cite what was received, so Regulator R can follow the path and hold both agents by name.</p>
 <figure class="stage" id="s-worm" data-scene="scWorm" aria-label="Animation: an injection spreading and a hold stopping both agents">
   <canvas width="900" height="600"></canvas>
   <div class="controls"><button type="button" class="playbtn">Play</button><input type="range" min="0" max="1000" value="0" aria-label="Animation position"><button type="button" class="bigbtn" aria-label="Show larger">Larger</button></div>
 </figure>
 <div class="draftcheck"><p class="uses"><strong>Uses:</strong> <a href="#h-c">records on both sides</a>, <a href="#h-p">policy and hold</a>, <a href="#h-r">grants</a></p><p class="miss"><strong>Missing:</strong> a hold that matches everything descending from an input (Open Issues, Appendix D). The edge sees what an agent received, not what the model used.</p></div>
 <h3 class="scene" id="breaker">4. Cutting off a compromised tool server<span class="verdict ok">Works</span></h3>
-<p>One hold from Security team T naming the server stops every company that granted T that right.</p>
+<p>One hold from Security team T naming the server stops every organization that granted T that right.</p>
 <figure class="stage" id="s-breaker" data-scene="scBreaker" aria-label="Animation: one hold stopping calls to a compromised server">
   <canvas width="900" height="600"></canvas>
   <div class="controls"><button type="button" class="playbtn">Play</button><input type="range" min="0" max="1000" value="0" aria-label="Animation position"><button type="button" class="bigbtn" aria-label="Show larger">Larger</button></div>
@@ -359,7 +359,7 @@ table.track th { font-weight: 600; border-top: 0; }
   <div class="controls"><button type="button" class="playbtn">Play</button><input type="range" min="0" max="1000" value="0" aria-label="Animation position"><button type="button" class="bigbtn" aria-label="Show larger">Larger</button></div>
 </figure>
 <div class="draftcheck"><p class="uses"><strong>Uses:</strong> <a href="#h-e">freshness-budget</a>, <a href="#h-j">witnesses and authorities</a></p></div>
-<h3 class="scene" id="approval">6. A person at another company approves an action<span class="verdict ext">Needs one addition</span></h3>
+<h3 class="scene" id="approval">6. A person at another organization approves an action<span class="verdict ext">Needs one addition</span></h3>
 <p>Bank K is an authority with a gate on wires to it. Officer O approves with a passkey; the wire’s record cites the approval.</p>
 <figure class="stage" id="s-approval" data-scene="scApproval" aria-label="Animation: a wire held until an officer at the bank approves it">
   <canvas width="900" height="600"></canvas>
@@ -397,9 +397,9 @@ table.track th { font-weight: 600; border-top: 0; }
   <h2>Where the page and the draft differ</h2>
   <p>Section numbers refer to <span class="mono">draft-nassar-agentproto-trail</span>.</p>
   <div class="tablewrap"><table class="track">
-    <thead><tr><th>Topic</th><th>In the revised draft</th><th>Status</th></tr></thead>
+    <thead><tr><th>Topic</th><th>In draft -00</th><th>Status</th></tr></thead>
     <tbody>
-      <tr><td>Sandbox</td><td>Added to §1.6</td><td>Done in the revised draft</td></tr>
+      <tr><td>Sandbox</td><td>Added to §1.6</td><td>Done in draft -00</td></tr>
       <tr><td>Cell, edge</td><td>Redefined in §1.6: everything behind one edge; where traffic leaves the cell</td><td>Done</td></tr>
       <tr><td>Attestation levels</td><td>§2.1 table: where the edge is, what the cell is, who can read the key, what goes around it</td><td>Done</td></tr>
       <tr><td>Authorities and witnesses</td><td>§2.2 added; a witness acts only through require-witness</td><td>Done</td></tr>

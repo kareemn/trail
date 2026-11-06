@@ -2,13 +2,13 @@
 
 > Generated from [`TRAIL_visuals.html`](TRAIL_visuals.html) by `tools/visuals/build.sh`; do not edit by hand. The animations play slower than on the interactive page. The draft itself is [`draft-nassar-agentproto-trail.md`](draft-nassar-agentproto-trail.md).
 
-AI agents call other agents and tools across organizational boundaries, but stopping an agent still means reaching it, and the parties overseeing it learn of problems only afterwards. TRAIL is an IETF draft that turns this around: an agent keeps acting only while the parties it answers to can still reach it. Wherever agents run, an edge outside the agent’s sandbox signs each call, checks it against the rules those parties publish, and pauses the agent when one of them goes quiet, so a revocation that can’t be delivered still takes effect. Those parties don’t have to be the operator: a bank, a regulator, or a counterparty’s compliance team can approve, refuse, or stop actions, within rights the operator grants. TRAIL doesn’t decide whether an action is safe. It lets the parties that do decide act while the agent is still running.
+AI agents call other agents and tools across administrative domains, but stopping an agent still means reaching it, and the parties responsible for it learn of problems only afterwards. TRAIL is an IETF draft that turns this around with a liveness rule: an agent keeps acting only while the parties it answers to can still reach it. Wherever agents run, an edge outside the agent’s sandbox signs each call and checks that it holds fresh signed state from each of those parties, pausing the agent when any of it goes stale, so a revocation that can’t be delivered still takes effect. Those parties (the draft calls them authorities) can sit outside the organization running the agent: a regulator, a bank, or an AI safety consortium. Within rights that organization grants, they can require approval, refuse an action, or hold an agent. TRAIL doesn’t decide whether an action is safe. It lets the parties that do decide act while the agent is still running.
 
-Kareem Nassar, Suhas Nandakumar, and Cullen Jennings. Draft: `draft-nassar-agentproto-trail`.
+Kareem Nassar, Suhas Nandakumar, and Cullen Jennings. Draft: [`draft-nassar-agentproto-trail`](https://datatracker.ietf.org/doc/draft-nassar-agentproto-trail/). Discussion: [agentproto@ietf.org](mailto:agentproto@ietf.org) (archive: [mailarchive.ietf.org/arch/browse/agentproto](https://mailarchive.ietf.org/arch/browse/agentproto/)).
 
 ## How to read the pictures
 
-Every animation uses the same layout: companies (operators) at the top, the evidence plane below them, and the parties that read it at the bottom. The same colors mean the same thing everywhere.
+Every animation uses the same layout: organizations (operators) at the top, the evidence plane below them, and the parties that read it at the bottom. The same colors mean the same thing everywhere.
 
 - **Machine**: the physical or virtual host
 - **Sandbox**: where the agent runs
@@ -16,7 +16,7 @@ Every animation uses the same layout: companies (operators) at the top, the evid
 - **Agent**: the AI (model + tools)
 - **Edge**: where traffic leaves the cell
 - **Attestation level**: under each edge, with its form
-- **Operator**: the company running the cells
+- **Operator**: the organization running the cells
 - **Action Record** (A1, B1: edge and number)
 - **Evidence plane**, with one box per trail, state, or set of directed records
 - **Authority**: e.g. Regulator R
@@ -47,7 +47,7 @@ Operators run agents in sandboxes on machines. The edge is where traffic leaves 
 | edge | Where traffic leaves the cell. Holds the keys, checks rules, signs, records, and blocks. |
 | attestation level | `software`, `tee`, or `isolated`: who can read the edge’s key, and what can go around it. |
 | verifier | Checks what holds an edge’s key and issues an Attestation Result (from RATS). |
-| agent, principal, operator | The AI; the person it acts for; the company running it. |
+| agent, principal, operator | The AI; the person it acts for; the organization running it. |
 | Action Record | The signed record of one action, written to the trail before the call leaves. |
 | trail, checkpoint | An edge’s records in order; a signed summary closing each stretch of it. |
 | epoch, archive | The stretch of a trail that one checkpoint closes; a service that stores trails and serves them to parties allowed to read them. |
@@ -193,7 +193,7 @@ An agent copies itself. The copy has no admission token, so TRAIL peers refuse i
 
 **Verdict:** Partly works
 
-An injection spreads from Agent A to Agent B at another company. Records cite what was received, so Regulator R can follow the path and hold both agents by name.
+An injection spreads from Agent A to Agent B at another organization. Records cite what was received, so Regulator R can follow the path and hold both agents by name.
 
 ![Animation: an injection spreading and a hold stopping both agents](visuals/16-worm.gif)
 
@@ -205,7 +205,7 @@ An injection spreads from Agent A to Agent B at another company. Records cite wh
 
 **Verdict:** Works
 
-One hold from Security team T naming the server stops every company that granted T that right.
+One hold from Security team T naming the server stops every organization that granted T that right.
 
 ![Animation: one hold stopping calls to a compromised server](visuals/17-breaker.gif)
 
@@ -221,7 +221,7 @@ Each kind of action needs a more or less recent cosignature. As Notary N falls b
 
 **Uses:** [freshness-budget](#an-authoritys-rules-freshness-budget), [witnesses and authorities](#witnesses-and-authorities-do-different-jobs)
 
-### 6. A person at another company approves an action
+### 6. A person at another organization approves an action
 
 **Verdict:** Needs one addition
 
@@ -266,9 +266,9 @@ The model server publishes which model it is attested to run. The edge records i
 
 Section numbers refer to `draft-nassar-agentproto-trail`.
 
-| Topic | In the revised draft | Status |
+| Topic | In draft -00 | Status |
 |---|---|---|
-| Sandbox | Added to §1.6 | Done in the revised draft |
+| Sandbox | Added to §1.6 | Done in draft -00 |
 | Cell, edge | Redefined in §1.6: everything behind one edge; where traffic leaves the cell | Done |
 | Attestation levels | §2.1 table: where the edge is, what the cell is, who can read the key, what goes around it | Done |
 | Authorities and witnesses | §2.2 added; a witness acts only through require-witness | Done |
