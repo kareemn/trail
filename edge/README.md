@@ -1,102 +1,172 @@
-# trail-edge: a TRAIL edge for nono sandboxes
+# trail-edge: a TRAIL edge for nono's OS sandbox
 
 This folder holds an implementation, in progress, of a TRAIL edge for
-agents that run in a [nono](https://nono.sh/) sandbox. The protocol is
-defined by the draft in the parent folder,
+agents confined by [nono's OS sandbox](https://nono.sh/os-sandbox)
+(Landlock on Linux, Seatbelt on macOS). The protocol is defined by the
+draft in the parent folder,
 [draft-nassar-agentproto-trail](../draft-nassar-agentproto-trail.md).
 Section numbers below refer to it. When this code and the draft
 disagree, the draft wins, or the difference goes to the draft's issue
 tracker.
 
-Status: Phase 0. Nothing in the edge works yet. Licensed under
-[Apache-2.0](LICENSE).
+Licensed under [Apache-2.0](LICENSE).
+
+## Status
+
+| Phase | State |
+|---|---|
+| 0. Confinement | Passes on macOS (Seatbelt). Not yet run on Linux |
+| 1. Core rule over HTTP | Works between two edges, without state, SD-CWT, or streaming |
+| 2 to 6 | Not started |
+
+## Quick start
+
+Needs Go 1.25 or later with CGo (nono-go links nono's static library),
+on macOS or Linux. No nono CLI is needed.
+
+```sh
+go build -o bin/ ./cmd/...
+
+# Phase 0: the agent's only way out is the edge.
+bin/trail-edge run -config examples/probe.json -- \
+  bin/escape-probe -secret ~/.trail-edge/probe/edge.key
+
+# Phase 1: a sandboxed agent calls another agent through two edges.
+examples/two-edges.sh
+```
+
+`examples/two-edges.sh` runs curl as Agent A in the sandbox. Agent A
+calls Agent B through both edges, then tries `https://example.com`
+directly. The output ends with both trails:
+
+```
+== Edge A's trail ==
+    0  lifecycle   completed event=start
+    1  send        allowed   method=POST host=127.0.0.1:9201 path=/tasks jsonrpc-method=tasks/send aud=spiffe://example.test/edge/b
+    2  recv        completed status=200 aud=spiffe://example.test/edge/b cites=e22966572224
+    3  send        denied    target=CONNECT example.com:443 reason=tunnels are not allowed; use a route
+    4  lifecycle   completed event=exit exit_code=0
+    5  checkpoint              covers 5 records, root 3935348749bbef21
+
+== Edge B's trail ==
+    0  recv        allowed   method=POST path=/tasks jsonrpc-method=tasks/send aud=spiffe://example.test/edge/a cites=93f7666a37df
+    1  send        completed status=200 aud=spiffe://example.test/edge/a cites=93f7666a37df
+    2  checkpoint              covers 2 records, root d3c65fd8a189482a
+```
+
+A1 is Edge A's record 1. B1 and B2 cite it, and A2 cites B2, as in the
+page's "records on both sides" block.
 
 ## How it fits together
 
-nono confines the agent so that its only way out is a localhost port
-owned by the edge. The edge runs outside the sandbox, as its own
-process and ideally its own user. It holds every key, signs every call,
-and keeps the trail. That makes every path out of the cell pass through
-the edge, as the draft's sandbox definition (1.6) and core rule (4)
-require.
-
 ```
 +------------- Cell A (one host) -----------------+
-|  nono run (Landlock / Seatbelt)                 |
+|  OS sandbox (nono: Landlock / Seatbelt)         |
 |  +-----------+   http://127.0.0.1:EDGE/<route>  |
 |  |  Agent    |-------------------+              |
-|  +-----------+   listen-port <---+--+           |
-|                                  v  |           |
-|  Edge (own uid, holds the keys) -------> HTTPS + Trail-Record
-|   trail db, state cache, policy     <------- inbound calls
-+------------------------|------------------------+
-                         v
-        evidence plane: tlog tiles + state + inbox (HTTP),
-        MOQT later
+|  +-----------+                   |              |
+|                                  v              |
+|  trail-edge (outside the sandbox, holds keys) ----> HTTPS + Trail-Record
+|   trail, peers, routes              <---------- inbound calls
++-------------------------------------------------+
 ```
+
+`trail-edge run` starts the edge, then starts a copy of itself that
+applies nono's sandbox to itself with nono-go and execs the agent. nono
+cannot sandbox another process, and its sandbox cannot be undone, so
+this is the only way to keep the edge outside while the agent never
+runs unsandboxed. The sandbox:
+
+* allows network access only to the edge's port (nono's
+  `NetworkProxyOnly` mode);
+* allows read access to system paths and what the config lists, and
+  write access only where the config says; and
+* is refused at startup if it would cover the edge's state directory,
+  which holds its key and trail.
+
+The agent's environment holds a few ordinary variables, the ones the
+config passes through, one variable per route pointing at the edge (for
+example `AGENT_B_URL=http://127.0.0.1:EDGE/a2a/b`), and proxy variables
+pointing at the edge. No credential reaches it: the edge adds them
+itself from its own environment, and records their hashes in
+context-hashes (3.2).
 
 The edge is a process beside the sandbox on the same host, so its
 attestation level is `software` (2.1). A host compromise or a sandbox
 escape goes around it, and a TPM-held key does not change that. Running
-nono and the edge inside a confidential VM gives `tee` with no change
-to this code.
+the edge and the sandbox inside a confidential VM gives `tee` with no
+change to this code.
 
 ### Why the edge does not use nono's proxy
 
-nono's network proxy allows or denies CONNECT by domain. TLS passes
-through it unopened, so an edge behind it could not see, sign, or bind
-a record to the call. The edge instead copies nono's credential-route
-idea: the agent gets plain-HTTP base URLs that point at the edge, such
-as `MCP_URL=http://127.0.0.1:EDGE/mcp/github` or
-`OPENAI_BASE_URL=http://127.0.0.1:EDGE/model/openai`. The edge parses
-the call, signs it, opens TLS to the real endpoint, and adds the
-credentials itself. It must add them itself, because the record carries
-their hashes in context-hashes (3.2).
+nono's proxy tunnels TLS for host allowlisting, and intercepts it only
+for routes that need path-level rules. Either way, nono is the party
+that sees the call. A TRAIL edge must see, sign, and bind a record to
+every call, and hold the keys. So the agent talks plain HTTP to the
+edge's own port, and the edge opens TLS to the real endpoint. A CONNECT
+to the edge is refused and recorded.
 
-| nono feature | Use in the edge |
-|---|---|
-| Kernel filesystem deny-by-default | The edge's keys, trail database, and config stay outside every allowed path |
-| Network limited to one localhost port | The only way out. Not yet verified: see Phase 0 |
-| `--listen-port` | Inbound calls: the edge verifies Trail-Record, then forwards to the agent |
-| Credential proxy | Not used. The edge adds credentials |
-| Supervisor approvals, audit Merkle log, undo | Not in the draft. At most a lifecycle record could cite nono's session root, as an extension |
-| Process exit | The edge writes a lifecycle record, and admission-release if the agent held a token |
+## What works (Phase 1)
 
-## What the edge contains
+* **Outbound (4, 6.1).** Each call to a route is written to the trail as
+  an Action Record before it leaves: a COSE_Sign1 with ES256, typ,
+  kid (JWK Thumbprint), and CWT claims, and a deterministically encoded
+  payload. The record carries call-ref (http-ref), aud, action class,
+  context-hashes, and the JSON-RPC method, id, and tool name. The edge
+  signs the request with an RFC 9421 signature covering `@method`,
+  `@target-uri`, `content-digest`, and `trail-record`. Calls with no
+  route, and CONNECT, are refused and recorded.
+* **Responses.** When the route names a TRAIL counterparty (`aud`), the
+  response must carry the responder's record, signed and citing the
+  request's record. The edge records a recv that cites it. Otherwise it
+  records a recv with outcome `unsigned`.
+* **Model endpoints.** A `model-call` route gets a record and no TRAIL
+  headers (4).
+* **Inbound (4).** The edge refuses calls with no record, an unknown
+  key, a bad signature, a call-ref or Content-Digest that does not match
+  the call, an aud for someone else, a created time outside the allowed
+  skew, or a replayed record. It records every refusal. It delivers
+  accepted calls to the agent, records a recv citing the sender's
+  record, and answers with its own signed record citing it.
+* **Trail (8.1, 8.2).** An RFC 9162 tree over record identifiers,
+  appended with fsync before a call leaves. A checkpoint closes each
+  epoch and every run. `trail-edge verify` checks every signature, trail
+  position, and checkpoint root. A changed byte fails it.
+* **Lifecycle records** at agent start (command, nono version, and a
+  hash of the sandbox rules) and exit (exit code).
 
-1. **Launcher.** Builds the nono profile, starts `nono run` with the
-   route environment variables and no secrets, and watches the process.
-2. **Outbound pipeline (4, 6.1).** Classifies each call (kind, action
-   class, counterparty, MCP or A2A method from JSON-RPC), checks it
-   against directives, builds the Action Record (COSE_Sign1, SD-CWT
-   payload), appends it to the trail and waits for the acknowledgment,
-   signs the request with RFC 9421 and adds Trail-Record, sends it, then
-   verifies the responder's record and appends a record citing it.
-   Model endpoints get model-call records only. Any other destination
-   is denied.
-3. **Inbound pipeline.** The six receiver steps of section 4: verify the
-   record and call-ref, check the sender's level, holds, admission, and
-   freshness, reject replays, deliver, and append a recv record. SSE
-   responses carry the record in the event that completes the exchange.
-4. **Trail (8).** An RFC 9162 tree in SQLite, published as tlog tiles.
-   A checkpoint closes each epoch and goes to the witnesses for
-   cosignature. A restart record starts a new trail after lost state.
-5. **State (9).** Publishes the edge's snapshot: its WIT, the agent's
-   WIT, the Attestation Result, and the latest cosigned checkpoint.
-   Subscribes to the operator's, the authorities', and peers' snapshots,
-   ignores directives outside a grant, and tracks freshness per
-   authority and action class.
-6. **Directive engine (9.2 to 9.5).** All eight directive types, degraded
-   mode with grace periods from the last fresh snapshot, and a
-   hold-applied record the first time a hold stops an action.
-7. **Directed records (5.3, 10).** Gate requests and approvals,
-   disclosures encrypted with COSE-HPKE, disclosure requests (refused
-   and recorded outside a grant), and admission tokens.
+Tests in `internal/` cover these, including tampering, replay, and
+redirection. Run them with `go test ./...`.
 
-The edge is written in Go. Go has tlog-tiles (Tessera), C2SP checkpoint
-and witness tooling, go-cose, RFC 9421 libraries, a nono SDK, and MOQT
-libraries. Whether a Go MOQT library supports draft-22 is still to be
-checked.
+## Not done yet
+
+* **State and directives (9).** Peers' keys come from the config file as
+  a stand-in for their state snapshots. No policy, hold, freshness, or
+  require-* directives yet, so receiver step 4 (level, holds, admission,
+  freshness) is skipped.
+* **Witnesses and cosignatures (8.3),** publishing the trail as tlog
+  tiles (6.2), and restart records after lost state (8.1).
+* **Gates, admission, disclosure (10), and SD-CWT redaction (3.4).**
+  Until redaction exists, records hold digests and protocol identifiers,
+  not arguments.
+* **Streamed responses.** SSE responses are buffered, which breaks long
+  MCP streams (6.1).
+* **The MOQT binding (5).**
+* **WIMSE identity (11.1)** and Attestation Results (11.4). Identities
+  are plain strings; there is no WIT.
+
+## Linux
+
+This hasn't been run on Linux yet. Two things to check there:
+
+* Landlock's network rules (ABI v4, Linux 6.7+) match TCP ports, not
+  addresses. Allowing the edge's port may allow that port on any host.
+  nono's CLI adds a seccomp filter on `connect()` for this; whether
+  nono-go's `NetworkProxyOnly` does too is not documented. The escape
+  probe does not catch it yet, because it would need a remote host
+  listening on the edge's port.
+* Landlock applies per thread. `__sandbox-exec` locks its OS thread,
+  applies the sandbox, and execs on that thread.
 
 ## Phases
 
@@ -106,67 +176,58 @@ in the [repo README](../README.md)) run as tests.
 
 | Phase | Builds | Done when these work |
 |---|---|---|
-| 0. Confinement | Confirm nono leaves one way out, on macOS and Linux (Landlock ABI v4+) | `spike/nono-confine.sh` passes |
-| 1. Core rule over HTTP | Records, trail, signatures, two edges, a mock MCP or A2A peer | "Records on both sides", "tamper-evident" |
+| 0. Confinement | nono leaves one way out, on macOS and Linux | `escape-probe` passes under `trail-edge run` |
+| 1. Core rule over HTTP | Records, trail, signatures, two edges | "Records on both sides", "tamper-evident" |
 | 2. State and directives | Operator grants; policy, hold, require-record, require-level, freshness-budget, degraded mode | Grants, killswitch over HTTP, scenario 4 |
 | 3. Witnesses | Witness service, cosignatures, require-witness, discovery through witness trails | Scenarios 1 and 5, discovery |
 | 4. Gates, disclosure, admission | Directed records, SD-CWT, COSE-HPKE, admission tokens | Scenarios 2, 6 (without passkeys), 7 |
 | 5. MOQT evidence plane | Hybrid deployment (6.6): calls on HTTP, evidence on MOQT | Killswitch and discovery over MOQT |
 | 6. Measurements | The numbers listed in Open Issues | Results for Implementation Status (13) |
 
-Phases 1 to 4 also need small mock services: an operator, an authority,
+Phases 2 to 4 also need small mock services: an operator, an authority,
 a witness, an admission issuer, a test verifier, and a test WIT issuer.
-
-## Phase 0: confinement
-
-`cmd/escape-probe` runs inside the sandbox and tries every way out it
-knows: the edge port (must work), another local port, IPv4 and IPv6
-TCP, UDP DNS, the system resolver, the cloud metadata address, reading
-a file the edge owns, and signalling the edge's process. Everything but
-the edge port must fail.
-
-```sh
-spike/nono-confine.sh --control   # no sandbox: most checks FAIL, proving the probe works
-spike/nono-confine.sh             # inside nono
-NONO_FLAGS="--block-net --open-port 7777" spike/nono-confine.sh
-```
-
-The default nono flags are a guess from nono's documentation and have
-not been run yet. If no combination passes, the gap goes to nolabs as a
-feature request: an option that limits a child to one localhost port.
-
-On some networks UDP DNS and the metadata address are already blocked,
-so those two checks pass even in the control run. They prove something
-only on a network where the control run reaches them.
 
 ## Gaps the draft leaves to implementations
 
 These come up as soon as the edge is built. Each should become an issue
 on the draft.
 
-- No policy bundle format. The edge has to pick one, such as Cedar or
+* No policy bundle format. The edge has to pick one, such as Cedar or
   Rego.
-- No standard way to map an HTTP call to an action class and
-  counterparty. The edge needs a configuration schema for it.
-- Bootstrapping HTTP state: the state resource is "listed in its
+* No standard way to map an HTTP call to an action class and
+  counterparty. This edge uses routes in its config.
+* Bootstrapping HTTP state: the state resource is "listed in its
   state", which is circular on first contact.
-- The commit point over HTTP (6.4) requires an acknowledged append
+* The commit point over HTTP (6.4) requires an acknowledged append
   before every send, from a tile server the operator does not run. That
   adds latency to every call; batching needs guidance.
-- Which inputs a send cites. The edge cannot tell which received input
+* Which inputs a send cites. The edge cannot tell which received input
   caused a later send. Scenario 3 needs a rule, such as citing every
   input in the dialog since the last send.
-- Whether pausing covered agents means only refusing their traffic, or
+* Whether pausing covered agents means only refusing their traffic, or
   also suspending the process.
-- nono's own evidence (supervisor approvals, audit log) has no place in
-  the record.
+* How a call to a counterparty that does not run TRAIL is closed. This
+  edge records a recv with outcome `unsigned`; the draft defines that
+  outcome only for inbound calls.
+* The sandbox's own rules have no place in the record. This edge puts a
+  hash of them in a lifecycle record body.
+* `@target-uri` is signed as the sender saw it. A receiver behind a
+  proxy that changes Host or scheme cannot reconstruct it. The draft
+  should say which URI the receiver checks.
 
 ## Layout
 
 | Path | What it is |
 |---|---|
-| `cmd/trail-edge` | The edge. A stub for now |
-| `cmd/escape-probe` | Phase 0 probe, also a stand-in edge with `-serve` |
-| `spike/nono-confine.sh` | Runs the Phase 0 check |
-
-Build with Go 1.25 or later: `go build ./...` from this folder.
+| `cmd/trail-edge` | The edge: `run`, `serve`, `key`, `verify` |
+| `cmd/escape-probe` | Phase 0 probe; with `-serve`, a stand-in edge |
+| `cmd/echo-agent` | A stand-in agent or tool for demos and tests |
+| `internal/edge` | Outbound and inbound pipelines, checkpoints, trail verification |
+| `internal/record` | Action Records: COSE_Sign1, payload, identifiers |
+| `internal/trail` | The append-only trail and RFC 9162 tree |
+| `internal/httpsig` | RFC 9421 signatures and Trail-Record for TRAIL |
+| `internal/sandbox` | Starting the agent in nono's OS sandbox |
+| `internal/keys` | The edge key and JWK Thumbprints |
+| `internal/config` | Edge configuration |
+| `examples/` | `probe.json` and `two-edges.sh` |
+| `spike/nono-confine.sh` | The same probe under the nono CLI instead of the library |

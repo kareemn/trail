@@ -6,20 +6,28 @@
 // It exits 1 if any result differs from what is expected.
 //
 // With -serve it instead acts as a stand-in edge: it listens on the given
-// address outside the sandbox and answers every connection with "edge".
+// address outside the sandbox and answers the edge's health path.
+//
+// Under "trail-edge run", -edge and -edge-pid default to the TRAIL_EDGE_ADDR
+// and TRAIL_EDGE_PID variables the edge gives the agent.
 package main
 
 import (
-	"bufio"
 	"context"
 	"flag"
 	"fmt"
+	"io"
 	"net"
+	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
 )
+
+// healthPath matches edge.HealthPath.
+const healthPath = "/.well-known/trail-edge"
 
 type check struct {
 	name   string
@@ -29,10 +37,11 @@ type check struct {
 
 func main() {
 	serve := flag.String("serve", "", "act as the stand-in edge on this address, e.g. 127.0.0.1:7777")
-	edge := flag.String("edge", "127.0.0.1:7777", "the edge's address; must be reachable")
+	edge := flag.String("edge", envOr("TRAIL_EDGE_ADDR", "127.0.0.1:7777"), "the edge's address; must be reachable")
 	other := flag.String("other-local", "127.0.0.1:7778", "a local port that is not the edge; must not be reachable")
 	secret := flag.String("secret", "", "a file the edge owns; must not be readable")
-	edgePID := flag.Int("edge-pid", 0, "the edge's process id; signalling it must fail")
+	pidDefault, _ := strconv.Atoi(os.Getenv("TRAIL_EDGE_PID"))
+	edgePID := flag.Int("edge-pid", pidDefault, "the edge's process id; signalling it must fail")
 	flag.Parse()
 
 	if *serve != "" {
@@ -63,19 +72,16 @@ func main() {
 	}
 
 	checks := []check{
-		{"tcp to the edge " + *edge, true, func() error {
-			c, err := net.DialTimeout("tcp", *edge, timeout)
+		{"http to the edge " + *edge, true, func() error {
+			c := &http.Client{Timeout: timeout}
+			resp, err := c.Get("http://" + *edge + healthPath)
 			if err != nil {
 				return err
 			}
-			defer c.Close()
-			_ = c.SetDeadline(time.Now().Add(timeout))
-			line, err := bufio.NewReader(c).ReadString('\n')
-			if err != nil {
-				return err
-			}
-			if strings.TrimSpace(line) != "edge" {
-				return fmt.Errorf("unexpected greeting %q", line)
+			defer resp.Body.Close()
+			b, _ := io.ReadAll(resp.Body)
+			if strings.TrimSpace(string(b)) != "trail-edge" {
+				return fmt.Errorf("unexpected answer %q", b)
 			}
 			return nil
 		}},
@@ -130,21 +136,19 @@ func main() {
 }
 
 func runServer(addr string) int {
-	ln, err := net.Listen("tcp", addr)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		return 1
-	}
 	fmt.Fprintf(os.Stderr, "stand-in edge listening on %s (pid %d)\n", addr, os.Getpid())
-	for {
-		c, err := ln.Accept()
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			return 1
-		}
-		_, _ = c.Write([]byte("edge\n"))
-		_ = c.Close()
+	err := http.ListenAndServe(addr, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintln(w, "trail-edge")
+	}))
+	fmt.Fprintln(os.Stderr, err)
+	return 1
+}
+
+func envOr(k, def string) string {
+	if v := os.Getenv(k); v != "" {
+		return v
 	}
+	return def
 }
 
 // dnsQuery is a minimal DNS query for example.com, type A.
