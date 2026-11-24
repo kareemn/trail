@@ -3,7 +3,8 @@
 Instructions for coding agents (Claude Code, Codex, and others) working in this
 repo. `CLAUDE.md` imports this file.
 
-This repo holds the TRAIL Internet-Draft and an illustrated explainer of it.
+This repo holds the TRAIL Internet-Draft, an illustrated explainer of it, and
+an edge implementation in progress (`edge/`).
 **The draft, the explainer page, the README, and the GIFs must agree.** A change
 to one is not done until the others match.
 
@@ -18,6 +19,7 @@ to one is not done until the others match.
 | `visuals/NN-name.gif` | Each animation exported as a GIF | No: run `tools/visuals/build.sh` |
 | `tools/visuals/` | The export and check scripts | Yes |
 | `Makefile` | Builds the draft with i-d-template from `../moq-transport/lib` | Rarely |
+| `edge/` | A TRAIL edge for nono sandboxes, in Go. Its own module and Apache-2.0 license. See "The edge implementation" below | Yes |
 
 The draft says what TRAIL is. The page explains it. When they disagree, the
 draft wins, unless the change is something the authors are deliberately
@@ -203,9 +205,28 @@ differences table.
 - **Requirements:** Node 18+, Python 3, ffmpeg, and Google Chrome. Playwright
   drives the system Chrome, so it downloads no browser. `build.sh` runs
   `npm ci` on first use.
-- **Keep the README GitHub-only.** The repo is private, so the README is how
-  members view the page. Don't publish the page or GIFs anywhere public: GitHub
-  Pages from this repo would be public.
+- **Keep the README GitHub-only.** The repo is public on GitHub, and the README
+  is how readers view the page there. Ask the authors before publishing the
+  page or GIFs anywhere else, such as GitHub Pages.
+
+## The edge implementation (`edge/`)
+
+`edge/` is outside the rule that the draft, page, README, and GIFs must agree.
+Changing it does not require rebuilding anything else. Its plan and status are
+in `edge/README.md`.
+
+- **The draft is the spec.** Cite draft sections by number in code comments
+  and in `edge/README.md`. `check_refs.py` checks only the page, so after the
+  draft renumbers, check the numbers in `edge/` by hand.
+- **Don't invent protocol in code.** Where the draft leaves something open, add
+  it to "Gaps the draft leaves to implementations" in `edge/README.md`, and
+  raise it against the draft.
+- **When a phase works,** update the draft's Implementation Status section and,
+  if readers would care, the page.
+- **Go conventions:** run `gofmt`, `go vet ./...`, and `go build ./...` from
+  `edge/` before committing. Keep built binaries out of git.
+- **Writing style:** the draft's plain-language rules apply to `edge/README.md`
+  and comments: short declarative sentences, no em dashes, the draft's terms.
 
 ## Repo hygiene
 

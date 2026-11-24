@@ -1,0 +1,7 @@
+{
+  "identity": "spiffe://example.test/edge/probe",
+  "agent": "spiffe://example.test/agent/probe",
+  "state_dir": "~/.trail-edge/probe",
+  "routes": [],
+  "sandbox": { "read": ["../bin"] }
+}

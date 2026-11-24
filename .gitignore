@@ -2,3 +2,6 @@ node_modules/
 .refcache/
 *.xml
 .history
+/edge/bin/
+/edge/trail-edge
+/edge/escape-probe
